@@ -1,0 +1,8 @@
+### Analyse
+POST http://localhost:3000/analyse HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "https://www.bbc.com/news/articles/cgkg4m0133po"
+}
+
