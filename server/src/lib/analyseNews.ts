@@ -3,26 +3,31 @@ import { GoogleGenAI } from "@google/genai";
 /**
  * Analyzes a news article text using Gemini and returns structured analysis.
  */
-export const analyzeArticleContent = async (articleText: string) => {
+export const analyzeArticleContent = async <T>(
+  articleText: string
+): Promise<string | { error: string; rawOutput: string | undefined }> => {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const prompt = `
-You are an expert political news analyst. Given the following news article text, your task is to analyze it and provide a an object response with the following fields:
+  const prompt = `You are an expert political news analyst. Your task is to analyze a news article text provided to you and return a structured JSON object.
 
+First, determine whether the text represents a valid news article. Users might send random, fake, or irrelevant links, so you must carefully evaluate if the content resembles an actual news report. If the text does not look like a valid news article, respond with:
+{
+  "error": "The provided text is not a valid news article."
+}
+
+If the text looks like a valid news article, analyze it and return:
 {
   "title": "string",
   "summary": "string",
   "politicalAlignment": "left | center | right | unknown",
   "credibilityScore": number (0.0 to 1.0),
   "credibilityReason": "string",
+  "sarcasmOrSatire": "yes | no | unsure",
   "recommendedAction": "string"
 }
 
-If the text does not look like a valid news article, respond with:
-{
-  "error": "The provided text is not a valid news article."
-}
+Your analysis should be objective and unbiased. The "sarcasmOrSatire" field should indicate whether the text appears sarcastic, satirical, or ironic.
 
-Be objective and unbiased. Here is the article text:
+Here is the article text:
 =====
 ${articleText}
 =====
