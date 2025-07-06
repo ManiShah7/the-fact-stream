@@ -7,7 +7,8 @@ import { readUrl } from "./lib/puppeteerUtils";
 import { db } from "./lib/db";
 import { analyzeLogs } from "./lib/db/schema";
 import { authMiddleware } from "./middleware/authMiddleware";
-import type { CustomContext } from "../types/context";
+import type { CustomContext, PostAnalyzeBody } from "../types/context";
+import { and, eq } from "drizzle-orm";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -70,7 +71,7 @@ app
     });
   })
   .post("/analyse", authMiddleware, async (c: CustomContext) => {
-    const { url } = await c.req.json();
+    const { url, publish } = (await c.req.json()) as PostAnalyzeBody;
     const user = c.get("user");
 
     if (!user || !user.sub) {
@@ -85,11 +86,67 @@ app
       url,
       articleText: pageContent,
       modelResponse: JSON.stringify(analysis),
+      isPublished: publish,
     });
 
     return c.json({
       analysis,
     });
+  })
+  .get("/analyse/history", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
+
+    if (!user || !user.sub) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const logs = await db
+      .selectDistinct()
+      .from(analyzeLogs)
+      .where(eq(analyzeLogs.userId, user.sub));
+
+    return c.json(logs);
+  })
+  .get("analyse/:id", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
+    const id = c.req.param("id");
+
+    if (!user || !user.sub) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    if (!id) {
+      return c.json({ error: "ID is required" }, 400);
+    }
+
+    const log = await db
+      .select()
+      .from(analyzeLogs)
+      .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.sub)))
+      .limit(1)
+      .then((res) => res[0]);
+
+    if (!log) {
+      return c.json({ error: "Log not found" }, 404);
+    }
+
+    return c.json({
+      ...log,
+    });
+  })
+  .get("/published", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
+
+    if (!user || !user.sub) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const logs = await db
+      .selectDistinct()
+      .from(analyzeLogs)
+      .where(eq(analyzeLogs.isPublished, true));
+
+    return c.json(logs);
   });
 
 export default app;
