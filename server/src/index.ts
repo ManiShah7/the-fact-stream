@@ -1,14 +1,14 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { and, eq } from "drizzle-orm";
 import { GoogleGenAI } from "@google/genai";
 import type { User } from "@supabase/supabase-js";
 import { analyzeArticleContent } from "./lib/analyseNews";
 import { readUrl } from "./lib/puppeteerUtils";
 import { db } from "./lib/db";
-import { analyzeLogs } from "./lib/db/schema";
+import { analyzeLogs } from "./lib/db/schema/analyseLogs";
 import { authMiddleware } from "./middleware/authMiddleware";
 import type { CustomContext, PostAnalyzeBody } from "../types/context";
-import { and, eq } from "drizzle-orm";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY!,
@@ -69,6 +69,30 @@ app
     return c.json({
       data,
     });
+  })
+  .post("/signout", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
+
+    if (!user || !user.sub) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: process.env.SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${c.req
+          .header("Authorization")
+          ?.replace("Bearer ", "")}`,
+      },
+    });
+
+    if (!res.ok) {
+      return c.json({ error: "Sign out failed" }, 400);
+    }
+
+    return c.json({ success: true });
   })
   .post("/analyse", authMiddleware, async (c: CustomContext) => {
     const { url, publish } = (await c.req.json()) as PostAnalyzeBody;
@@ -133,6 +157,28 @@ app
     return c.json({
       ...log,
     });
+  })
+  .patch("/analyse/:id", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
+    const id = c.req.param("id");
+
+    if (!user || !user.sub) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    if (!id) {
+      return c.json({ error: "ID is required" }, 400);
+    }
+
+    const { publish } = (await c.req.json()) as { publish: boolean };
+
+    await db
+      .update(analyzeLogs)
+      .set({ isPublished: publish })
+      .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.sub)))
+      .execute();
+
+    return c.json({ success: true });
   })
   .get("/published", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");

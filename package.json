@@ -29,6 +29,7 @@
     "monorepo"
   ],
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "bun-types": "latest",
     "concurrently": "^9.1.2",
     "drizzle-kit": "^0.31.4"
