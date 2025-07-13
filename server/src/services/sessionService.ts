@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { sign } from "jsonwebtoken";
-import { db } from "../src/lib/db/index";
-import { userSessions } from "../src/lib/db/schema/userSessions";
+import { db } from "../lib/db/index";
+import { userSessions } from "../lib/db/schema/userSessions";
 
 export const createSession = async (userId: string) => {
   const sessionId = crypto.randomUUID();
