@@ -7,9 +7,7 @@ import { readUrl } from "@server/lib/puppeteerUtils";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { CustomContext, PostAnalyzeBody } from "@server/types/context";
 
-export const analyseRoutes = new Hono();
-
-analyseRoutes
+export const analyseRoutes = new Hono()
   .get("/", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");
 

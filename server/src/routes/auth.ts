@@ -10,90 +10,89 @@ import type {
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 
-export const authRoutes = new Hono();
+export const authRoutes = new Hono()
+  .post("/signin", async (c: CustomContext) => {
+    const { email, password } = (await c.req.json()) as SignInBody;
 
-authRoutes.post("/signin", async (c: CustomContext) => {
-  const { email, password } = (await c.req.json()) as SignInBody;
+    const res = await fetch(
+      `${process.env.SUPABASE_URL}/auth/v1/token?grant_type=password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: process.env.SUPABASE_ANON_KEY!,
+        },
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
-  const res = await fetch(
-    `${process.env.SUPABASE_URL}/auth/v1/token?grant_type=password`,
-    {
+    const data = (await res.json()) as SignInData;
+
+    if (!res.ok) {
+      return c.json({ error: "Login failed", details: data }, 401);
+    }
+
+    const sessionId = crypto.randomUUID();
+
+    await db.insert(userSessions).values({
+      userId: data.user.id,
+      sessionId,
+      createdAt: new Date(),
+    });
+
+    return c.json({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      user: data.user,
+      sessionId,
+    });
+  })
+  .post("/signup", async (c) => {
+    const { name, phone, email, password } = await c.req.json();
+
+    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: process.env.SUPABASE_ANON_KEY!,
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, phone, data: { name } }),
+    });
+
+    const data = (await res.json()) as User;
+
+    if (!res.ok) {
+      return c.json({ error: "Signup failed", details: data }, 400);
     }
-  );
 
-  const data = (await res.json()) as SignInData;
+    return c.json({
+      data,
+    });
+  })
+  .post("/signout", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
 
-  if (!res.ok) {
-    return c.json({ error: "Login failed", details: data }, 401);
-  }
+    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: process.env.SUPABASE_ANON_KEY!,
+        Authorization: `Bearer ${c.req
+          .header("Authorization")
+          ?.replace("Bearer ", "")}`,
+      },
+    });
 
-  const sessionId = crypto.randomUUID();
+    if (!res.ok) {
+      return c.json({ error: "Sign out failed" }, 400);
+    }
 
-  await db.insert(userSessions).values({
-    userId: data.user.id,
-    sessionId,
-    createdAt: new Date(),
+    await db
+      .delete(userSessions)
+      .where(eq(userSessions.userId, user.sub))
+      .execute();
+
+    return c.json({ success: true });
   });
 
-  return c.json({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    user: data.user,
-    sessionId,
-  });
-});
-
-authRoutes.post("/signup", async (c) => {
-  const { name, phone, email, password } = await c.req.json();
-
-  const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/signup`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: process.env.SUPABASE_ANON_KEY!,
-    },
-    body: JSON.stringify({ email, password, phone, data: { name } }),
-  });
-
-  const data = (await res.json()) as User;
-
-  if (!res.ok) {
-    return c.json({ error: "Signup failed", details: data }, 400);
-  }
-
-  return c.json({
-    data,
-  });
-});
-
-authRoutes.post("/signout", authMiddleware, async (c: CustomContext) => {
-  const user = c.get("user");
-
-  const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: process.env.SUPABASE_ANON_KEY!,
-      Authorization: `Bearer ${c.req
-        .header("Authorization")
-        ?.replace("Bearer ", "")}`,
-    },
-  });
-
-  if (!res.ok) {
-    return c.json({ error: "Sign out failed" }, 400);
-  }
-
-  await db
-    .delete(userSessions)
-    .where(eq(userSessions.userId, user.sub))
-    .execute();
-
-  return c.json({ success: true });
-});
+export type AuthRoutes = typeof authRoutes;
