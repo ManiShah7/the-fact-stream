@@ -1,4 +1,3 @@
-import type { User } from "@supabase/supabase-js";
 import type { Context } from "hono";
 import type { SupabaseUser } from "shared/src/types/user";
 
@@ -20,12 +19,6 @@ type SignInBody = {
   password: string;
 };
 
-type SignInData = {
-  access_token: string;
-  refresh_token: string;
-  user: User;
-};
-
 type CustomContext = Context<MyEnv>;
 
-export type { PostAnalyzeBody, SignInBody, SignInData, CustomContext };
+export type { PostAnalyzeBody, SignInBody, CustomContext };

@@ -1,3 +1,5 @@
+import type { User } from "@supabase/supabase-js";
+
 type SupabaseUser = {
   sub: string;
   email: string;
@@ -5,4 +7,11 @@ type SupabaseUser = {
   exp: number;
 };
 
-export type { SupabaseUser };
+type SignInResponse = {
+  access_token: string;
+  refresh_token: string;
+  user: User;
+};
+
+
+export type { SupabaseUser, SignInResponse };

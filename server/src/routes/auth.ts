@@ -2,13 +2,10 @@ import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { db } from "@server/lib/db";
 import type { User } from "@supabase/supabase-js";
-import type {
-  CustomContext,
-  SignInBody,
-  SignInData,
-} from "@server/types/context";
+import type { CustomContext, SignInBody } from "@server/types/context";
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
+import type { SignInResponse } from "@shared/types/user";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c: CustomContext) => {
@@ -26,7 +23,7 @@ export const authRoutes = new Hono()
       }
     );
 
-    const data = (await res.json()) as SignInData;
+    const data = (await res.json()) as SignInResponse;
 
     if (!res.ok) {
       return c.json({ error: "Login failed", details: data }, 401);
