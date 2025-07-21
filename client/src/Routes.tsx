@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
-import { Routes as RRRoutes, Route } from "react-router";
-import { useAuth } from "./hooks/useAuth";
+import { Navigate, Routes as RRRoutes, Route } from "react-router";
+import { useAuth } from "@/hooks/useAuth";
+import Layout from "@/components/layout";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 
@@ -10,11 +11,16 @@ const Routes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <RRRoutes>
-        {auth?.user ? (
-          <>Auth</>
+        {!auth?.user ? (
+          <Route path="" element={<Layout />}>
+            <Route path="/" element={<div>Auth</div>} />
+
+            <Route path="*" element={<>404 Not Found</>} />
+          </Route>
         ) : (
           <>
-            <Route path="/" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/login" />} />
           </>
         )}
       </RRRoutes>
