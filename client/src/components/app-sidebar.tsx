@@ -2,7 +2,6 @@ import {
   ChevronUp,
   CirclePlus,
   Globe,
-  Home,
   MessagesSquare,
   Rss,
   User2,
@@ -25,12 +24,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 const items = [
   {
     title: "New Chat",
-    url: "new/",
+    url: "/new",
     icon: CirclePlus,
   },
   {
@@ -40,7 +39,7 @@ const items = [
   },
   {
     title: "Published News",
-    url: "/news",
+    url: "/published-news",
     icon: Rss,
   },
 ];
@@ -65,7 +64,12 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <SidebarGroupLabel className="flex items-center mb-5">
-          The Fact Stream <Globe className="ms-2" />
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-lg font-semibold"
+          >
+            The Fact Stream <Globe size={20} />
+          </Link>
         </SidebarGroupLabel>
       </SidebarHeader>
       <SidebarContent>
