@@ -42,7 +42,7 @@ type Chat = {
   isArchived?: boolean;
 };
 
-const Archive = () => {
+const RecentChats = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<ChatStatus | "all">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "score">("newest");
@@ -398,4 +398,4 @@ const Archive = () => {
   );
 };
 
-export default Archive;
+export default RecentChats;

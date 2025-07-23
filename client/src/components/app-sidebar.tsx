@@ -47,15 +47,15 @@ const items = [
 const myChats = [
   {
     title: "Chat 1",
-    url: "/chat-1",
+    url: "chats/chat-1",
   },
   {
     title: "Chat 2",
-    url: "/chat-2",
+    url: "chats/chat-2",
   },
   {
     title: "Chat 3",
-    url: "/chat-3",
+    url: "chats/chat-3",
   },
 ];
 
@@ -122,7 +122,9 @@ export function AppSidebar() {
                 className="w-[--radix-popper-anchor-width]"
               >
                 <DropdownMenuItem>
-                  <span>Account</span>
+                  <Link to="/settings">
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <span>Sign out</span>
