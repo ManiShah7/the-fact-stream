@@ -42,7 +42,7 @@ type PublishedArticle = {
   shares: number;
 };
 
-const PublishedNews = () => {
+const PublishedNewsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 
@@ -357,4 +357,4 @@ const PublishedNews = () => {
   );
 };
 
-export default PublishedNews;
+export default PublishedNewsPage;

@@ -41,7 +41,7 @@ type NewsCheck = {
   };
 };
 
-const NewChat = () => {
+const NewChatPage = () => {
   const [checks, setChecks] = useState<NewsCheck[]>([]);
   const [url, setUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -60,7 +60,8 @@ const NewChat = () => {
     try {
       new URL(string);
       return true;
-    } catch (_) {
+    } catch (error_) {
+      console.error("Invalid URL:", error_);
       return false;
     }
   };
@@ -476,4 +477,4 @@ const NewChat = () => {
   );
 };
 
-export default NewChat;
+export default NewChatPage;

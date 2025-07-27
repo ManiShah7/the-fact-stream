@@ -27,7 +27,7 @@ type FormState = {
   error: string;
 };
 
-const Settings = () => {
+const SettingsPage = () => {
   const [currentEmail, setCurrentEmail] = useState("user@example.com");
   const [newEmail, setNewEmail] = useState("");
   const [emailPassword, setEmailPassword] = useState("");
@@ -483,4 +483,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default SettingsPage;

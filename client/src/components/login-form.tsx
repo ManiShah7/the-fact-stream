@@ -1,70 +1,211 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router";
+import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Logo from "@/components/logo";
+
+type FormState = {
+  isLoading: boolean;
+  error: string;
+};
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [formState, setFormState] = useState<FormState>({
+    isLoading: false,
+    error: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setFormState({ isLoading: false, error: "Please fill in all fields" });
+      return;
+    }
+
+    setFormState({ isLoading: true, error: "" });
+
+    try {
+      //
+    } catch (error) {
+      console.error("Login error:", error);
+      setFormState({
+        isLoading: false,
+        error: "Invalid email or password. Please try again.",
+      });
+    }
+  };
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/30">
+      <div className={cn("w-full max-w-md space-y-6", className)} {...props}>
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <Logo />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
+            <p className="text-muted-foreground">
+              Sign in to continue fact-checking news
+            </p>
+          </div>
+        </div>
+
+        <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-xl">Sign in to your account</CardTitle>
+            <CardDescription>
+              Enter your credentials to access your dashboard
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {formState.error && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    {formState.error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={formState.isLoading}
+                    className="pl-10"
+                    required
+                  />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 </div>
-                <Input id="password" type="password" required />
               </div>
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
-                </Button>
-                <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-primary hover:underline underline-offset-4"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={formState.isLoading}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={formState.isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
-                Sign up
-              </a>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+
+              <Button
+                type="submit"
+                className="w-full h-11"
+                disabled={formState.isLoading || !email || !password}
+              >
+                {formState.isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+
+              {/* <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div> */}
+
+              {/* <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11"
+                disabled={formState.isLoading}
+              >
+                <Chrome className="w-4 h-4 mr-2" />
+                Continue with Google
+              </Button> */}
+
+              <div className="text-center pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Link
+                    to="/signup"
+                    className="text-primary hover:underline underline-offset-4 font-medium"
+                  >
+                    Create account
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="text-center space-y-2">
+          <p className="text-xs text-muted-foreground">
+            By signing in, you agree to our{" "}
+            <Link to="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="text-privacy hover:underline">
+              Privacy Policy
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

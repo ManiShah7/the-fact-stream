@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const NotFound = () => {
+const NotFoundPage = () => {
   const navigate = useNavigate();
 
   const quickLinks = [
@@ -123,4 +123,4 @@ const NotFound = () => {
   );
 };
 
-export default NotFound;
+export default NotFoundPage;
