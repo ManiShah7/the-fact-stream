@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,41 +15,48 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Logo from "@/components/logo";
-
-type FormState = {
-  isLoading: boolean;
-  error: string;
-};
+import { useLoginMutation } from "@/queries/authQueries";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [formState, setFormState] = useState<FormState>({
-    isLoading: false,
-    error: "",
-  });
+
+  // Queries and mutations
+  const { mutate: login, isPending, isError, error } = useLoginMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
-      setFormState({ isLoading: false, error: "Please fill in all fields" });
+      toast.error("Please enter both email and password");
+      toast.success("Login successful. Redirecting...");
       return;
     }
 
-    setFormState({ isLoading: true, error: "" });
+    const toastId = toast.loading("Signing in...");
 
     try {
-      //
+      await login({ email, password });
+      toast.update(toastId, {
+        render: "Login successful. Redirecting...",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      setFormState({
+      toast.update(toastId, {
+        render: error instanceof Error ? error.message : "Login failed",
+        type: "error",
         isLoading: false,
-        error: "Invalid email or password. Please try again.",
+        autoClose: 3000,
       });
     }
   };
@@ -76,12 +84,12 @@ export function LoginForm({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {formState.error && (
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {isError && (
                 <Alert className="border-red-200 bg-red-50">
                   <AlertCircle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-800">
-                    {formState.error}
+                    {error.message || "Login failed. Please try again."}
                   </AlertDescription>
                 </Alert>
               )}
@@ -95,7 +103,7 @@ export function LoginForm({
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={formState.isLoading}
+                    disabled={isPending}
                     className="pl-10"
                     required
                   />
@@ -120,7 +128,7 @@ export function LoginForm({
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={formState.isLoading}
+                    disabled={isPending}
                     className="pl-10 pr-10"
                     required
                   />
@@ -131,7 +139,7 @@ export function LoginForm({
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={formState.isLoading}
+                    disabled={isPending}
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -145,9 +153,9 @@ export function LoginForm({
               <Button
                 type="submit"
                 className="w-full h-11"
-                disabled={formState.isLoading || !email || !password}
+                disabled={isPending}
               >
-                {formState.isLoading ? (
+                {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Signing in...

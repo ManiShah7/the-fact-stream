@@ -90,6 +90,10 @@ export const authRoutes = new Hono()
       .execute();
 
     return c.json({ success: true });
+  })
+  .get("/me", authMiddleware, async (c: CustomContext) => {
+    const user = c.get("user");
+    return c.json(user);
   });
 
 export type AuthRoutes = typeof authRoutes;

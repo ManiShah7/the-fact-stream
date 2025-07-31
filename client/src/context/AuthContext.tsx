@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { SignInResponse } from "@shared/types/user";
+import { SignInResponse } from "shared/src/types/user";
 
 type AuthContextType = {
   user: SignInResponse | null;
