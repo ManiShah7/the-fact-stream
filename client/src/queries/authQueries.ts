@@ -1,6 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "./client";
 import type { SignInResponse, SupabaseUser } from "shared/src/types/user";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 type LoginRequest = {
   email: string;
@@ -8,7 +10,15 @@ type LoginRequest = {
 };
 
 const getCurrentUser = async (): Promise<SupabaseUser> => {
-  const res = await client.api.v1.auth.me.$get();
+  const accessToken = localStorage.getItem("access_token");
+  const res = await client.api.v1.auth.me.$get(
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
   if (!res.ok) throw new Error("Failed to fetch user");
   return res.json();
 };
@@ -33,13 +43,37 @@ const loginUser = async (
 };
 
 export const useLoginMutation = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
-      console.log("Login successful:", data);
+    onMutate: () => {
+      return toast.loading("Signing in...");
     },
-    onError: (error) => {
-      console.error("Login error:", error);
+    onSuccess: (data, _variables, toastId) => {
+      if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("refresh_token", data.refresh_token);
+      }
+
+      toast.update(toastId, {
+        render: "Login successful. Redirecting...",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      navigate("/");
+    },
+    onError: (error, _variables, toastId) => {
+      toast.update(toastId as string, {
+        render: error instanceof Error ? error.message : "Login failed",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
     },
   });
 };

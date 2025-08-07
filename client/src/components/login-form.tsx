@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,40 +28,19 @@ export function LoginForm({
   // Queries and mutations
   const { mutate: login, isPending, isError, error } = useLoginMutation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
       toast.error("Please enter both email and password");
-      toast.success("Login successful. Redirecting...");
       return;
     }
 
-    const toastId = toast.loading("Signing in...");
-
-    try {
-      await login({ email, password });
-      toast.update(toastId, {
-        render: "Login successful. Redirecting...",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.update(toastId, {
-        render: error instanceof Error ? error.message : "Login failed",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
-    }
+    login({ email, password });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="min-h-screen flex items-center justify-center p-4 to-muted/30">
       <div className={cn("w-full max-w-md space-y-6", className)} {...props}>
         <div className="text-center space-y-4">
           <div className="flex justify-center">
@@ -201,7 +179,7 @@ export function LoginForm({
           </CardContent>
         </Card>
 
-        <div className="text-center space-y-2">
+        {/* <div className="text-center space-y-2">
           <p className="text-xs text-muted-foreground">
             By signing in, you agree to our{" "}
             <Link to="/terms" className="text-primary hover:underline">
@@ -212,7 +190,7 @@ export function LoginForm({
               Privacy Policy
             </Link>
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

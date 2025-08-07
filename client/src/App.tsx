@@ -1,23 +1,23 @@
 import { BrowserRouter } from "react-router";
+import { ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/providers/AuthProvider";
 import Routes from "@/Routes";
-import { ThemeProvider } from "./providers/ThemeProvider";
-import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="dark" storageKey="the-fact-stream-theme">
             <ToastContainer />
             <Routes />
           </ThemeProvider>
-        </QueryClientProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }

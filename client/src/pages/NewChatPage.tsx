@@ -175,7 +175,7 @@ const NewChatPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100%-2rem)] justify-center max-w-4xl mx-auto">
+    <div className="flex flex-col h-[calc(100%-2rem)] justify-center max-w-3xl mx-auto">
       <ScrollArea className="px-4">
         {checks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full pt-2 pb-6">

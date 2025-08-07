@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Routes as RRRoutes, Route } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/layout";
-import LoadingSpinner from "./components/loading-spinner";
+import LoadingSpinner from "@/components/loading-spinner";
 
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
@@ -20,14 +20,17 @@ const Routes = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <RRRoutes>
-        {auth?.user ? (
+        {auth?.loading ? (
+          <Route path="*" element={<LoadingSpinner />} />
+        ) : auth?.user ? (
           <Route path="/" element={<Layout />}>
             <Route index element={<NewChatPage />} />
-            <Route path="new" element={<NewChatPage />} />
-            <Route path="chats" element={<RecentChats />} />
-            <Route path="chats/:chatId" element={<SingleChat />} />
-            <Route path="published-news" element={<PublishedNewsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/new" element={<NewChatPage />} />
+            <Route path="/chats" element={<RecentChats />} />
+            <Route path="/chats/:chatId" element={<SingleChat />} />
+            <Route path="/published-news" element={<PublishedNewsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         ) : (

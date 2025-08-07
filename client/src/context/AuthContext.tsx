@@ -1,8 +1,8 @@
 import { createContext } from "react";
-import { SignInResponse } from "shared/src/types/user";
+import { SupabaseUser } from "shared/src/types/user";
 
 type AuthContextType = {
-  user: SignInResponse | null;
+  user: SupabaseUser | null;
   error: Error | null;
   loading: boolean;
 };
