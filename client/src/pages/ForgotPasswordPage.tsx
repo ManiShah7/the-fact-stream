@@ -19,54 +19,31 @@ import {
   Loader2,
   Shield,
 } from "lucide-react";
-
-type FormState = {
-  isLoading: boolean;
-  success: boolean;
-  error: string;
-};
+import { useResetPasswordMutation } from "@/queries/authQueries";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
-  const [formState, setFormState] = useState<FormState>({
-    isLoading: false,
-    success: false,
-    error: "",
-  });
+
+  const {
+    mutate: resetPassword,
+    isPending,
+    isError,
+    error,
+  } = useResetPasswordMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email) {
-      setFormState({
-        isLoading: false,
-        success: false,
-        error: "Email address is required",
-      });
       return;
     }
 
     if (!email.includes("@")) {
-      setFormState({
-        isLoading: false,
-        success: false,
-        error: "Please enter a valid email address",
-      });
       return;
     }
 
-    setFormState({ isLoading: true, success: false, error: "" });
-
-    try {
-      //
-    } catch (error) {
-      console.error(error);
-      setFormState({
-        isLoading: false,
-        success: false,
-        error: "Failed to send reset email. Please try again.",
-      });
-    }
+    resetPassword(email);
+    setEmail("");
   };
 
   return (
@@ -95,7 +72,7 @@ const ForgotPasswordPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!formState.success ? (
+            {!isError ? (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
@@ -106,28 +83,28 @@ const ForgotPasswordPage = () => {
                       placeholder="Enter your email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      disabled={formState.isLoading}
+                      disabled={isPending}
                       className="pl-10"
                     />
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   </div>
                 </div>
 
-                {formState.error && (
+                {error && (
                   <Alert className="border-red-200 bg-red-50">
                     <AlertCircle className="h-4 w-4 text-red-600" />
                     <AlertDescription className="text-red-800">
-                      {formState.error}
+                      Failed to send reset email.
                     </AlertDescription>
                   </Alert>
                 )}
 
                 <Button
                   type="submit"
-                  disabled={formState.isLoading || !email}
+                  disabled={isPending || !email}
                   className="w-full"
                 >
-                  {formState.isLoading ? (
+                  {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Sending Reset Email...
@@ -167,11 +144,7 @@ const ForgotPasswordPage = () => {
                 <div className="space-y-3">
                   <Button
                     onClick={() => {
-                      setFormState({
-                        isLoading: false,
-                        success: false,
-                        error: "",
-                      });
+                      resetPassword(email);
                       setEmail("");
                     }}
                     variant="outline"

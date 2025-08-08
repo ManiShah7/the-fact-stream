@@ -13,5 +13,4 @@ type SignInResponse = {
   user: User;
 };
 
-
 export type { SupabaseUser, SignInResponse };

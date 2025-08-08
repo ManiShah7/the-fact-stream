@@ -91,9 +91,37 @@ export const authRoutes = new Hono()
 
     return c.json({ success: true });
   })
+  .post("/resetPassword", async (c) => {
+    const { email } = await c.req.json();
+
+    if (!email) {
+      return c.json({ error: "Email is required" }, 400);
+    }
+
+    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/recover`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: process.env.SUPABASE_ANON_KEY!,
+      },
+      body: JSON.stringify({ 
+        email,
+        options: {
+          redirectTo: `${process.env.CLIENT_URL}/reset-password`
+        }
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      return c.json({ error: "Failed to send reset email", details: errorData }, 400);
+    }
+
+    return c.json({ message: "Password reset email sent" });
+  })
   .get("/me", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");
     return c.json(user);
-  });
+  })
 
 export type AuthRoutes = typeof authRoutes;

@@ -65,7 +65,7 @@ export function LoginForm({
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {isError && (
                 <Alert className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertCircle className="h-8 w-8 fill-red-600" />
                   <AlertDescription className="text-red-800">
                     {error.message || "Login failed. Please try again."}
                   </AlertDescription>

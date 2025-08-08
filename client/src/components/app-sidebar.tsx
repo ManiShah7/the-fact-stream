@@ -2,8 +2,10 @@ import {
   ChevronUp,
   CirclePlus,
   Globe,
+  LogOut,
   MessagesSquare,
   Rss,
+  Settings,
   User2,
 } from "lucide-react";
 import { Link } from "react-router";
@@ -25,6 +27,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLogoutMutation } from "@/queries/authQueries";
+import { useAuth } from "@/hooks/useAuth";
 
 const items = [
   {
@@ -60,6 +64,14 @@ const myChats = [
 ];
 
 export function AppSidebar() {
+  const auth = useAuth();
+
+  const { mutate: logout, isPending } = useLogoutMutation();
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -112,22 +124,26 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <User2 /> Username
+                <SidebarMenuButton className="flex items-center gap-2 cursor-pointer">
+                  <User2 /> {auth?.user?.email || "User"}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                className="w-[--radix-popper-anchor-width]"
-              >
-                <DropdownMenuItem>
-                  <Link to="/settings">
-                    <span>Settings</span>
+              <DropdownMenuContent className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/settings"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Settings /> Settings
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Sign out</span>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  disabled={isPending}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <LogOut /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
