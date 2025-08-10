@@ -1,11 +1,12 @@
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
 import { db } from "@server/lib/db";
 import type { User } from "@supabase/supabase-js";
 import type { CustomContext, SignInBody } from "@server/types/context";
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
-import type { SignInResponse } from "@shared/types/user";
+import type { SupabaseSignInResponse } from "@shared/types/user";
+import { getCookie } from "hono/cookie";
+import { eq } from "drizzle-orm";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c: CustomContext) => {
@@ -23,25 +24,23 @@ export const authRoutes = new Hono()
       }
     );
 
-    const data = (await res.json()) as SignInResponse;
+    const data = (await res.json()) as SupabaseSignInResponse;
 
-    if (!res.ok) {
-      return c.json({ error: "Login failed", details: data }, 401);
-    }
-
-    const sessionId = crypto.randomUUID();
+    c.header(
+      "Set-Cookie",
+      `access_token=${data.access_token}; HttpOnly; Path=/; Max-Age=3600`
+    );
 
     await db.insert(userSessions).values({
+      refreshToken: data.refresh_token,
       userId: data.user.id,
-      sessionId,
-      createdAt: new Date(),
     });
 
     return c.json({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-      user: data.user,
-      sessionId,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+      },
     });
   })
   .post("/signup", async (c) => {
@@ -68,21 +67,22 @@ export const authRoutes = new Hono()
   })
   .post("/signout", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");
+    const accessToken = getCookie(c, "access_token");
 
     const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: process.env.SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${c.req
-          .header("Authorization")
-          ?.replace("Bearer ", "")}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
     if (!res.ok) {
       return c.json({ error: "Sign out failed" }, 400);
     }
+
+    c.header("Set-Cookie", "access_token=; HttpOnly; Path=/; Max-Age=0");
 
     await db
       .delete(userSessions)
@@ -104,24 +104,39 @@ export const authRoutes = new Hono()
         "Content-Type": "application/json",
         apikey: process.env.SUPABASE_ANON_KEY!,
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         email,
         options: {
-          redirectTo: `${process.env.CLIENT_URL}/reset-password`
-        }
+          redirectTo: `${process.env.CLIENT_URL}/reset-password`,
+        },
       }),
     });
 
     if (!res.ok) {
       const errorData = await res.json();
-      return c.json({ error: "Failed to send reset email", details: errorData }, 400);
+      return c.json(
+        { error: "Failed to send reset email", details: errorData },
+        400
+      );
     }
 
     return c.json({ message: "Password reset email sent" });
   })
   .get("/me", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");
+
+    const foundSession = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.userId, user.sub))
+      .limit(1)
+      .then((res) => res[0]);
+
+    if (!foundSession) {
+      return c.json({ error: "Session not found" }, 404);
+    }
+
     return c.json(user);
-  })
+  });
 
 export type AuthRoutes = typeof authRoutes;

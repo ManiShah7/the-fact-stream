@@ -8,11 +8,7 @@ type AnalyzeNewsRequest = {
 };
 
 const analyzeNewsMutation = async ({ url, publish }: AnalyzeNewsRequest) => {
-  const accessToken = localStorage.getItem("access_token");
   const res = await client.api.v1.analyse.$post({
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
     json: { url, publish },
   });
   if (!res.ok) throw new Error("Failed to analyze news");

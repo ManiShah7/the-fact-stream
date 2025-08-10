@@ -10,15 +10,7 @@ type LoginRequest = {
 };
 
 const getCurrentUser = async (): Promise<SupabaseUser> => {
-  const accessToken = localStorage.getItem("access_token");
-  const res = await client.api.v1.auth.me.$get(
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const res = await client.api.v1.auth.me.$get();
   if (!res.ok) throw new Error("Failed to fetch user");
   return res.json();
 };
@@ -38,8 +30,11 @@ const loginUser = async (
   const res = await client.api.v1.auth.signin.$post({
     json: credentials,
   });
-  if (!res.ok)
+
+  if (!res.ok) {
     throw new Error("Failed to login. Please check your credentials.");
+  }
+
   return res.json();
 };
 
@@ -52,12 +47,7 @@ export const useLoginMutation = () => {
     onMutate: () => {
       return toast.loading("Signing in...");
     },
-    onSuccess: (data, _variables, toastId) => {
-      if (data.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("refresh_token", data.refresh_token);
-      }
-
+    onSuccess: (_data, _variables, toastId) => {
       toast.update(toastId, {
         render: "Login successful. Redirecting...",
         type: "success",
@@ -80,15 +70,7 @@ export const useLoginMutation = () => {
 };
 
 const logoutUser = async (): Promise<{ success: boolean }> => {
-  const accessToken = localStorage.getItem("access_token");
-  const res = await client.api.v1.auth.signout.$post(
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const res = await client.api.v1.auth.signout.$post();
   if (!res.ok) throw new Error("Failed to logout");
   return res.json();
 };
@@ -103,9 +85,6 @@ export const useLogoutMutation = () => {
       return toast.loading("Signing out...");
     },
     onSuccess: (_data, _variables, toastId) => {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-
       toast.update(toastId, {
         render: "Logged out successfully",
         type: "success",

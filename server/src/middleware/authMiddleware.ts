@@ -1,3 +1,4 @@
+import { getCookie } from "hono/cookie";
 import { jwtVerify } from "jose";
 import { eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
@@ -5,21 +6,15 @@ import { db } from "@server/lib/db";
 import { userSessions } from "../lib/db/schema/userSessions";
 
 export const authMiddleware = async (c: Context, next: Next) => {
-  const auth = c.req.header("Authorization");
+  const accessToken = getCookie(c, "access_token");
 
-  if (!auth || !auth.startsWith("Bearer ")) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
-  const token = auth.split(" ")[1];
-
-  if (!token) {
-    return c.json({ error: "Token not provided" }, 401);
+  if (!accessToken) {
+    return c.json({ error: "Not authenticated" }, 401);
   }
 
   try {
     const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(accessToken, secret);
 
     if (!payload.sub) {
       return c.json({ error: "Invalid token" }, 401);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router";
 import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
@@ -25,7 +25,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { mutate: login, isPending, isError, error, data } = useLoginMutation();
+  const { mutate: login, isPending, isError, error } = useLoginMutation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +37,6 @@ export function LoginForm({
 
     login({ email, password });
   };
-
-  useEffect(() => {
-    if (data) {
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-    }
-  }, [data]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 to-muted/30">

@@ -9,8 +9,13 @@ type SupabaseUser = {
 
 type SignInResponse = {
   access_token: string;
+  user: User;
+};
+
+type SupabaseSignInResponse = {
+  access_token: string;
   refresh_token: string;
   user: User;
 };
 
-export type { SupabaseUser, SignInResponse };
+export type { SupabaseUser, SignInResponse, SupabaseSignInResponse };
