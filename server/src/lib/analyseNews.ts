@@ -27,6 +27,8 @@ If the text looks like a valid news article, analyze it and return:
 
 Your analysis should be objective and unbiased. The "sarcasmOrSatire" field should indicate whether the text appears sarcastic, satirical, or ironic.
 
+Always answer in English, even if the article is in another language. If you cannot determine the political alignment, set it to "unknown". The "credibilityScore" should be a number between 0.0 and 1.0, where 1.0 is highly credible and 0.0 is not credible at all.
+
 Here is the article text:
 =====
 ${articleText}

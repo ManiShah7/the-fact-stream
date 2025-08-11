@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { db } from "@server/lib/db";
+import { eq } from "drizzle-orm";
 import type { User } from "@supabase/supabase-js";
 import type { CustomContext, SignInBody } from "@server/types/context";
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { SupabaseSignInResponse } from "@shared/types/user";
 import { getCookie } from "hono/cookie";
-import { eq } from "drizzle-orm";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c: CustomContext) => {
@@ -24,17 +24,37 @@ export const authRoutes = new Hono()
       }
     );
 
+    if (!res.ok) {
+      const errorData = await res.json();
+      return c.json({ error: "Sign in failed", details: errorData }, 400);
+    }
+
     const data = (await res.json()) as SupabaseSignInResponse;
+
+    const existingSession = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.userId, data.user.id))
+      .limit(1)
+      .then((res) => res[0]);
+
+    if (existingSession) {
+      await db
+        .update(userSessions)
+        .set({ refreshToken: data.refresh_token })
+        .where(eq(userSessions.userId, data.user.id))
+        .execute();
+    } else {
+      await db.insert(userSessions).values({
+        refreshToken: data.refresh_token,
+        userId: data.user.id,
+      });
+    }
 
     c.header(
       "Set-Cookie",
-      `access_token=${data.access_token}; HttpOnly; Path=/; Max-Age=3600`
+      `access_token=${data.access_token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax; Secure`
     );
-
-    await db.insert(userSessions).values({
-      refreshToken: data.refresh_token,
-      userId: data.user.id,
-    });
 
     return c.json({
       user: {
@@ -82,7 +102,10 @@ export const authRoutes = new Hono()
       return c.json({ error: "Sign out failed" }, 400);
     }
 
-    c.header("Set-Cookie", "access_token=; HttpOnly; Path=/; Max-Age=0");
+    c.header(
+      "Set-Cookie",
+      "access_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure"
+    );
 
     await db
       .delete(userSessions)

@@ -8,6 +8,8 @@ import { userSessions } from "../lib/db/schema/userSessions";
 export const authMiddleware = async (c: Context, next: Next) => {
   const accessToken = getCookie(c, "access_token");
 
+  console.log("Access Token:", accessToken);
+
   if (!accessToken) {
     return c.json({ error: "Not authenticated" }, 401);
   }
@@ -20,7 +22,6 @@ export const authMiddleware = async (c: Context, next: Next) => {
       return c.json({ error: "Invalid token" }, 401);
     }
 
-    // Check if the user session exists in the database. This is to ensure when user logs out, the session is removed.
     const userSessionId = await db
       .select()
       .from(userSessions)
@@ -30,7 +31,6 @@ export const authMiddleware = async (c: Context, next: Next) => {
       return c.json({ error: "Session not found" }, 401);
     }
 
-    // Check if the user exists in the database
     const user = await db
       .select()
       .from(userSessions)
