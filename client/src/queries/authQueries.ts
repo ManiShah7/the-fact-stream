@@ -2,16 +2,14 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "./client";
-import type { SignInResponse, SupabaseUser } from "shared/src/types/user";
 
 type LoginRequest = {
   email: string;
   password: string;
 };
 
-const getCurrentUser = async (): Promise<SupabaseUser> => {
+const getCurrentUser = async () => {
   const res = await client.api.v1.auth.me.$get();
-  if (!res.ok) throw new Error("Failed to fetch user");
   return res.json();
 };
 
@@ -24,9 +22,7 @@ export const useUserQuery = () => {
   });
 };
 
-const loginUser = async (
-  credentials: LoginRequest
-): Promise<SignInResponse> => {
+const loginUser = async (credentials: LoginRequest) => {
   const res = await client.api.v1.auth.signin.$post({
     json: credentials,
   });
@@ -44,9 +40,7 @@ export const useLoginMutation = () => {
 
   return useMutation({
     mutationFn: loginUser,
-    onMutate: () => {
-      return toast.loading("Signing in...");
-    },
+    onMutate: () => toast.loading("Signing in..."),
     onSuccess: (_data, _variables, toastId) => {
       toast.update(toastId, {
         render: "Login successful. Redirecting...",
@@ -69,7 +63,7 @@ export const useLoginMutation = () => {
   });
 };
 
-const logoutUser = async (): Promise<{ success: boolean }> => {
+const logoutUser = async () => {
   const res = await client.api.v1.auth.signout.$post();
   if (!res.ok) throw new Error("Failed to logout");
   return res.json();
@@ -81,9 +75,7 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: logoutUser,
-    onMutate: () => {
-      return toast.loading("Signing out...");
-    },
+    onMutate: () => toast.loading("Signing out..."),
     onSuccess: (_data, _variables, toastId) => {
       toast.update(toastId, {
         render: "Logged out successfully",
@@ -106,7 +98,7 @@ export const useLogoutMutation = () => {
   });
 };
 
-const resetPassword = async (email: string): Promise<void> => {
+const resetPassword = async (email: string) => {
   const res = await client.api.v1.auth.resetPassword.$post({
     json: { email },
   });
@@ -116,9 +108,7 @@ const resetPassword = async (email: string): Promise<void> => {
 export const useResetPasswordMutation = () => {
   return useMutation({
     mutationFn: resetPassword,
-    onMutate: () => {
-      return toast.loading("Sending reset password email...");
-    },
+    onMutate: () => toast.loading("Sending reset password email..."),
     onSuccess: (_data, _variables, toastId) => {
       toast.update(toastId, {
         render: "Reset password email sent successfully",

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router";
-import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Logo from "@/components/logo";
 import { useLoginMutation } from "@/queries/authQueries";
 
@@ -25,7 +24,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { mutate: login, isPending, isError, error } = useLoginMutation();
+  const { mutate: login, isPending } = useLoginMutation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,15 +61,6 @@ export function LoginForm({
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              {isError && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-8 w-8 fill-red-600" />
-                  <AlertDescription className="text-red-800">
-                    {error.message || "Login failed. Please try again."}
-                  </AlertDescription>
-                </Alert>
-              )}
-
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <div className="relative">

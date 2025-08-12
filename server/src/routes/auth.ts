@@ -6,7 +6,7 @@ import type { CustomContext, SignInBody } from "@server/types/context";
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { SupabaseSignInResponse } from "@shared/types/user";
-import { getCookie } from "hono/cookie";
+import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c: CustomContext) => {
@@ -38,23 +38,41 @@ export const authRoutes = new Hono()
       .limit(1)
       .then((res) => res[0]);
 
+    let session: typeof existingSession;
+
     if (existingSession) {
-      await db
+      session = await db
         .update(userSessions)
         .set({ refreshToken: data.refresh_token })
-        .where(eq(userSessions.userId, data.user.id))
-        .execute();
+        .where(eq(userSessions.id, existingSession.id))
+        .returning()
+        .then((res) => res[0]);
     } else {
-      await db.insert(userSessions).values({
-        refreshToken: data.refresh_token,
-        userId: data.user.id,
-      });
+      session = await db
+        .insert(userSessions)
+        .values({
+          refreshToken: data.refresh_token,
+          userId: data.user.id,
+        })
+        .returning()
+        .then((res) => res[0]);
     }
 
-    c.header(
-      "Set-Cookie",
-      `access_token=${data.access_token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax; Secure`
-    );
+    setCookie(c, "access_token", data.access_token, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 3600,
+      sameSite: "Lax",
+      secure: true,
+    });
+
+    setCookie(c, "session_id", session!.id, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 86400 * 7,
+      sameSite: "Lax",
+      secure: true,
+    });
 
     return c.json({
       user: {
@@ -88,29 +106,36 @@ export const authRoutes = new Hono()
   .post("/signout", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");
     const accessToken = getCookie(c, "access_token");
+    const sessionId = getCookie(c, "session_id");
 
-    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: process.env.SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!res.ok) {
-      return c.json({ error: "Sign out failed" }, 400);
+    if (!sessionId) {
+      return c.json({ error: "No active session" }, 400);
     }
 
-    c.header(
-      "Set-Cookie",
-      "access_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure"
-    );
+    try {
+      const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: process.env.SUPABASE_ANON_KEY!,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn("Supabase logout failed, continuing with local cleanup");
+      }
+    } catch (error) {
+      console.warn("Supabase logout request failed:", error);
+    }
 
     await db
       .delete(userSessions)
-      .where(eq(userSessions.userId, user.sub))
+      .where(eq(userSessions.id, sessionId))
       .execute();
+
+    deleteCookie(c, "access_token");
+    deleteCookie(c, "session_id");
 
     return c.json({ success: true });
   })
@@ -147,17 +172,6 @@ export const authRoutes = new Hono()
   })
   .get("/me", authMiddleware, async (c: CustomContext) => {
     const user = c.get("user");
-
-    const foundSession = await db
-      .select()
-      .from(userSessions)
-      .where(eq(userSessions.userId, user.sub))
-      .limit(1)
-      .then((res) => res[0]);
-
-    if (!foundSession) {
-      return c.json({ error: "Session not found" }, 404);
-    }
 
     return c.json(user);
   });

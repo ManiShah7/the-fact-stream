@@ -1,51 +1,43 @@
 import { getCookie } from "hono/cookie";
-import { jwtVerify } from "jose";
 import { eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { db } from "@server/lib/db";
 import { userSessions } from "../lib/db/schema/userSessions";
+import {
+  getUserFromToken,
+  isValidAccessToken,
+} from "@server/helpers/authMiddlewareHelpers";
 
 export const authMiddleware = async (c: Context, next: Next) => {
-  const accessToken = getCookie(c, "access_token");
-
-  console.log("Access Token:", accessToken);
-
-  if (!accessToken) {
-    return c.json({ error: "Not authenticated" }, 401);
-  }
-
   try {
-    const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
-    const { payload } = await jwtVerify(accessToken, secret);
+    const sessionId = getCookie(c, "session_id");
 
-    if (!payload.sub) {
-      return c.json({ error: "Invalid token" }, 401);
+    if (!sessionId) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const userSessionId = await db
+    const session = await db
       .select()
       .from(userSessions)
-      .where(eq(userSessions.userId, String(payload.sub)));
+      .where(eq(userSessions.id, sessionId))
+      .limit(1)
+      .then((res) => res[0]);
 
-    if (!userSessionId || userSessionId.length === 0) {
-      return c.json({ error: "Session not found" }, 401);
+    if (!session || !session.refreshToken) {
+      return c.json({ error: "Invalid session" }, 401);
     }
 
-    const user = await db
-      .select()
-      .from(userSessions)
-      .where(eq(userSessions.userId, String(payload.sub)))
-      .execute();
+    const accessToken = getCookie(c, "access_token");
 
-    if (!user || user.length === 0) {
-      return c.json({ error: "User not found" }, 401);
+    if (accessToken && (await isValidAccessToken(accessToken))) {
+      const user = await getUserFromToken(accessToken);
+      c.set("user", { ...user, sessionId: session.id });
+      return next();
     }
 
-    c.set("user", payload);
-    c.set("sessionId", userSessionId);
-    return next();
+    return c.json({ error: "Access token required" }, 401);
   } catch (err) {
-    console.error("JWT error:", err);
-    return c.json({ error: "Invalid token" }, 401);
+    console.error("Auth middleware error:", err);
+    return c.json({ error: "Unauthorized" }, 401);
   }
 };

@@ -8,8 +8,10 @@ type SupabaseUser = {
 };
 
 type SignInResponse = {
-  access_token: string;
-  user: User;
+  user: {
+    id: User["id"];
+    email: User["email"];
+  };
 };
 
 type SupabaseSignInResponse = {

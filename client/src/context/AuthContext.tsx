@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import { SupabaseUser } from "shared/src/types/user";
 
-type AuthContextType = {
+export type AuthContextType = {
   user: SupabaseUser | null;
   error: Error | null;
   loading: boolean;
