@@ -1,11 +1,11 @@
 import type { Context } from "hono";
-import type { SupabaseUser } from "shared/src/types/user";
+import type { AuthenticatedUser } from "@server/helpers/authMiddlewareHelpers";
 
 type Variables = {
-  user: SupabaseUser;
+  user: AuthenticatedUser;
 };
 
-type MyEnv = {
+type AppEnv = {
   Variables: Variables;
 };
 
@@ -19,6 +19,6 @@ type SignInBody = {
   password: string;
 };
 
-type CustomContext = Context<MyEnv>;
+type CustomContext = Context<AppEnv>;
 
-export type { PostAnalyzeBody, SignInBody, CustomContext };
+export type { AppEnv, PostAnalyzeBody, SignInBody, CustomContext };

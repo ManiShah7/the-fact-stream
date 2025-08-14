@@ -1,15 +1,15 @@
 import { Hono } from "hono";
 import { db } from "@server/lib/db";
 import { eq } from "drizzle-orm";
+import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { User } from "@supabase/supabase-js";
-import type { CustomContext, SignInBody } from "@server/types/context";
+import type { SignInBody } from "@server/types/context";
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { SupabaseSignInResponse } from "@shared/types/user";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 
 export const authRoutes = new Hono()
-  .post("/signin", async (c: CustomContext) => {
+  .post("/signin", async (c) => {
     const { email, password } = (await c.req.json()) as SignInBody;
 
     const res = await fetch(
@@ -103,8 +103,7 @@ export const authRoutes = new Hono()
       data,
     });
   })
-  .post("/signout", authMiddleware, async (c: CustomContext) => {
-    const user = c.get("user");
+  .post("/signout", authMiddleware, async (c) => {
     const accessToken = getCookie(c, "access_token");
     const sessionId = getCookie(c, "session_id");
 
@@ -170,7 +169,7 @@ export const authRoutes = new Hono()
 
     return c.json({ message: "Password reset email sent" });
   })
-  .get("/me", authMiddleware, async (c: CustomContext) => {
+  .get("/me", authMiddleware, async (c) => {
     const user = c.get("user");
 
     return c.json(user);

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLogoutMutation } from "@/queries/authQueries";
 import { useAuth } from "@/hooks/useAuth";
+import { useGetAnalyzedNews } from "@/queries/analyzeNewsQueries";
 
 const items = [
   {
@@ -48,25 +49,13 @@ const items = [
   },
 ];
 
-const myChats = [
-  {
-    title: "Chat 1",
-    url: "chats/chat-1",
-  },
-  {
-    title: "Chat 2",
-    url: "chats/chat-2",
-  },
-  {
-    title: "Chat 3",
-    url: "chats/chat-3",
-  },
-];
-
 export function AppSidebar() {
   const auth = useAuth();
 
   const { mutate: logout, isPending } = useLogoutMutation();
+  const { data: analyzedNews, isLoading } = useGetAnalyzedNews();
+
+  console.log(analyzedNews);
 
   const handleLogout = () => {
     logout();
@@ -104,13 +93,14 @@ export function AppSidebar() {
 
         <SidebarGroup className="mb-5">
           <SidebarGroupContent>
-            <h1 className="px-2 text-xs font-semibold mb-2">My Chats</h1>
+            <h1 className="px-2 text-xs font-semibold mb-2">My Analyses</h1>
+
             <SidebarMenu>
-              {myChats.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {analyzedNews?.map((item) => (
+                <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild>
                     <Link to={item.url}>
-                      <span>{item.title}</span>
+                      <span>{item.modelResponse.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -5,15 +5,11 @@ import type { CustomContext } from "@server/types/context";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import { db } from "@server/lib/db";
 
-export const publishRoutes = new Hono().get(
-  "/",
-  authMiddleware,
-  async (c: CustomContext) => {
-    const logs = await db
-      .selectDistinct()
-      .from(analyzeLogs)
-      .where(eq(analyzeLogs.isPublished, true));
+export const publishRoutes = new Hono().get("/", authMiddleware, async (c) => {
+  const logs = await db
+    .selectDistinct()
+    .from(analyzeLogs)
+    .where(eq(analyzeLogs.isPublished, true));
 
-    return c.json(logs);
-  }
-);
+  return c.json(logs);
+});

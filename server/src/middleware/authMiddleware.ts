@@ -1,20 +1,20 @@
 import { getCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
-import type { Context, Next } from "hono";
+import type { Next } from "hono";
+import { createMiddleware } from "hono/factory";
 import { db } from "@server/lib/db";
-import { userSessions } from "../lib/db/schema/userSessions";
+import { HTTPException } from "hono/http-exception";
+import { userSessions } from "@server/lib/db/schema/userSessions";
 import {
   getUserFromToken,
   isValidAccessToken,
 } from "@server/helpers/authMiddlewareHelpers";
+import type { AppEnv } from "@server/types/context";
 
-export const authMiddleware = async (c: Context, next: Next) => {
+export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   try {
     const sessionId = getCookie(c, "session_id");
-
-    if (!sessionId) {
-      return c.json({ error: "Unauthorized" }, 401);
-    }
+    if (!sessionId) throw new HTTPException(401, { message: "Unauthorized" });
 
     const session = await db
       .select()
@@ -24,20 +24,20 @@ export const authMiddleware = async (c: Context, next: Next) => {
       .then((res) => res[0]);
 
     if (!session || !session.refreshToken) {
-      return c.json({ error: "Invalid session" }, 401);
+      throw new HTTPException(401, { message: "Invalid session" });
     }
 
     const accessToken = getCookie(c, "access_token");
-
-    if (accessToken && (await isValidAccessToken(accessToken))) {
-      const user = await getUserFromToken(accessToken);
-      c.set("user", { ...user, sessionId: session.id });
-      return next();
+    if (!(accessToken && (await isValidAccessToken(accessToken)))) {
+      throw new HTTPException(401, { message: "Access token required" });
     }
 
-    return c.json({ error: "Access token required" }, 401);
+    const user = await getUserFromToken(accessToken);
+    c.set("user", { ...user, sessionId: session.id });
+    await next();
   } catch (err) {
     console.error("Auth middleware error:", err);
-    return c.json({ error: "Unauthorized" }, 401);
+    if (err instanceof HTTPException) throw err;
+    throw new HTTPException(401, { message: "Unauthorized" });
   }
-};
+});

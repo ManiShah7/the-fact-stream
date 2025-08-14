@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
-import { client } from "./client";
 import { toast } from "react-toastify";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { client } from "./client";
 
 type AnalyzeNewsRequest = {
   url: string;
@@ -41,5 +41,18 @@ export const useAnalyzeNewsMutation = () => {
         autoClose: 3000,
       });
     },
+  });
+};
+
+const getAnalyzedNewsForUserQuery = async () => {
+  const res = await client.api.v1.analyse.$get();
+  if (!res.ok) throw new Error("Failed to get analyzed news");
+  return res.json();
+};
+
+export const useGetAnalyzedNews = () => {
+  return useQuery({
+    queryKey: ["analyzed-news"],
+    queryFn: getAnalyzedNewsForUserQuery,
   });
 };

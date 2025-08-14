@@ -1,10 +1,11 @@
 import type { User } from "@supabase/supabase-js";
 
 type SupabaseUser = {
-  sub: string;
+  id: string;
   email: string;
-  role: string;
-  exp: number;
+  role?: string;
+  exp?: number;
+  sessionId?: string;
 };
 
 type SignInResponse = {

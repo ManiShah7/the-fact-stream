@@ -31,3 +31,4 @@ const getUserFromToken = async (token: string): Promise<AuthenticatedUser> => {
 };
 
 export { isValidAccessToken, getUserFromToken };
+export type { AuthenticatedUser };

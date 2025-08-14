@@ -6,9 +6,9 @@ export type Client = ReturnType<typeof hc<AppType>>;
 
 export const hcWithType = (
   baseUrl: string,
-  options?: { fetch?: typeof fetch; headers?: Record<string, string> }
-): Client =>
-  hc<AppType>(baseUrl, {
+  options?: Parameters<typeof hc>[1]
+): Client => {
+  return hc<AppType>(baseUrl, {
     ...options,
     fetch: (input: RequestInfo | URL, init?: RequestInit) => {
       return fetch(input, {
@@ -17,3 +17,4 @@ export const hcWithType = (
       });
     },
   });
+};
