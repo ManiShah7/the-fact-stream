@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Send,
   Link2,
@@ -15,29 +15,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { useAnalyzeNewsMutation } from "@/queries/analyzeNewsQueries";
-
-type NewsCheck = {
-  title: string;
-  summary: string;
-  politicalAlignment: "left" | "center" | "right" | "unknown";
-  credibilityScore: number;
-  credibilityReason: string;
-  sarcasmOrSatire: "yes" | "no" | "unsure";
-  recommendedAction: string;
-};
+import type { ModelResponse } from "../../../shared/src/types/news";
 
 const NewChatPage = () => {
   const [url, setUrl] = useState("");
-  const [analysisResult, setAnalysisResult] = useState<any | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<ModelResponse | null>(
+    null
+  );
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   // const checksEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,10 +33,9 @@ const NewChatPage = () => {
     data,
   } = useAnalyzeNewsMutation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (data && !isPending && typeof data === "object" && "title" in data) {
       setAnalysisResult(data);
-      setShowModal(true);
     }
   }, [data, isPending]);
 
@@ -101,11 +85,6 @@ const NewChatPage = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
-    setHasAnalyzed(true);
   };
 
   return (
@@ -266,7 +245,7 @@ const NewChatPage = () => {
                 placeholder="Paste a news article URL here..."
                 className="pl-10"
                 type="url"
-                disabled={hasAnalyzed}
+                disabled={hasAnalyzed || isPending}
               />
               <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             </div>
@@ -306,95 +285,6 @@ const NewChatPage = () => {
           </div>
         </div>
       </div>
-
-      <Dialog open={showModal} onOpenChange={handleModalClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {analysisResult &&
-                getCredibilityIcon(analysisResult.credibilityScore)}
-              Analysis Complete
-            </DialogTitle>
-            <DialogDescription>
-              Here's what we found about this news article's reliability and
-              credibility.
-            </DialogDescription>
-          </DialogHeader>
-
-          {analysisResult && (
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2">{analysisResult.title}</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {analysisResult.summary}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-muted/50 rounded-lg">
-                    <div
-                      className={`text-2xl font-bold ${getCredibilityColor(
-                        analysisResult.credibilityScore
-                      )}`}
-                    >
-                      {analysisResult.credibilityScore.toFixed(1)}/10
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Credibility Score
-                    </div>
-                  </div>
-
-                  <div className="text-center p-4 bg-muted/50 rounded-lg">
-                    <Badge
-                      className={getPoliticalAlignmentColor(
-                        analysisResult.politicalAlignment
-                      )}
-                    >
-                      {analysisResult.politicalAlignment
-                        .charAt(0)
-                        .toUpperCase() +
-                        analysisResult.politicalAlignment.slice(1)}
-                    </Badge>
-                    <div className="text-sm text-muted-foreground mt-2">
-                      Political Alignment
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h5 className="font-medium mb-2">Analysis Details</h5>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {analysisResult.credibilityReason}
-                  </p>
-
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-sm font-medium">Satire/Sarcasm:</span>
-                    <Badge
-                      variant={
-                        analysisResult.sarcasmOrSatire === "yes"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {analysisResult.sarcasmOrSatire.charAt(0).toUpperCase() +
-                        analysisResult.sarcasmOrSatire.slice(1)}
-                    </Badge>
-                  </div>
-                </div>
-
-                <Alert>
-                  <Shield className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Recommendation:</strong>{" "}
-                    {analysisResult.recommendedAction}
-                  </AlertDescription>
-                </Alert>
-              </div>
-            </ScrollArea>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

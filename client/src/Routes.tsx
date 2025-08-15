@@ -27,8 +27,8 @@ const Routes = () => {
             <Route index element={<NewChatPage />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/new" element={<NewChatPage />} />
-            <Route path="/chats" element={<RecentChats />} />
-            <Route path="/chats/:chatId" element={<SingleChat />} />
+            <Route path="/analyses" element={<RecentChats />} />
+            <Route path="/analyses/:chatId" element={<SingleChat />} />
             <Route path="/published-news" element={<PublishedNewsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />

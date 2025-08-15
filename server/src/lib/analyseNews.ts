@@ -17,10 +17,16 @@ export const analyzeArticleContent = async <T>(
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   const prompt = `You are an expert political news analyst. Your task is to analyze a news article text provided to you and return a structured JSON object.
 
-First, determine whether the text represents a valid news article. Users might send random, fake, or irrelevant links, so you must carefully evaluate if the content resembles an actual news report. If the text does not look like a valid news article, respond with:
-{
-  "error": "The provided text is not a valid news article."
+First, determine whether the text represents a valid news article. Users might send random, fake, or irrelevant links, so you must carefully evaluate if the content resembles an actual news report. 
+If the text appears to have errors about access being denied or errors, it probably means that website has blocked puppeteer. In this case, respond with: {
+  "error": "Access denied or content blocked."
 }
+
+If the text does not look like a valid news article, respond with:
+{
+  "error": "The provided text is not a valid political news article."
+}
+
 
 If the text looks like a valid news article, analyze it and return:
 {

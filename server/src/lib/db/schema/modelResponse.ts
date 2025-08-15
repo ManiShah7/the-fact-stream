@@ -4,7 +4,7 @@ export const modelResponse = pgTable("model_response", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: varchar("title", { length: 255 }),
   summary: text(),
-  politcalAlignment: varchar(),
+  politicalAlignment: varchar(),
   credibilityScore: numeric(),
   credibilityReason: varchar(),
   sarcasmOrSatire: varchar(),

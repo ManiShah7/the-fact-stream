@@ -38,8 +38,8 @@ const items = [
     icon: CirclePlus,
   },
   {
-    title: "Chats",
-    url: "/chats",
+    title: "All Analyses",
+    url: "/analyses",
     icon: MessagesSquare,
   },
   {
@@ -54,8 +54,6 @@ export function AppSidebar() {
 
   const { mutate: logout, isPending } = useLogoutMutation();
   const { data: analyzedNews, isLoading } = useGetAnalyzedNews();
-
-  console.log(analyzedNews);
 
   const handleLogout = () => {
     logout();
@@ -96,15 +94,29 @@ export function AppSidebar() {
             <h1 className="px-2 text-xs font-semibold mb-2">My Analyses</h1>
 
             <SidebarMenu>
-              {analyzedNews?.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.url}>
-                      <span>{item.modelResponse.title}</span>
-                    </Link>
+              {isLoading ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton disabled>
+                    <span>Loading...</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              ) : analyzedNews ? (
+                analyzedNews?.map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton asChild>
+                      <Link to={item.url}>
+                        <span>{item.modelResponse.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              ) : (
+                <SidebarMenuItem>
+                  <SidebarMenuButton disabled>
+                    <span>No analyses found</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

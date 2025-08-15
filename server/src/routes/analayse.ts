@@ -37,7 +37,7 @@ export const analyseRoutes = new Hono()
     const analysis = await analyzeArticleContent(pageContent);
 
     if (typeof analysis !== "string" && "error" in analysis) {
-      return c.json({ error: "Model didn't generate a response." }, 422);
+      return c.json({ error: analysis.error, success: false }, 422);
     }
 
     const insertedModelResponse = await db
