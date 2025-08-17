@@ -104,7 +104,7 @@ export function AppSidebar() {
                 analyzedNews?.map((item) => (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton asChild>
-                      <Link to={item.url}>
+                      <Link to={`/analyses/${item.id}`}>
                         <span>{item.modelResponse.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -113,7 +113,7 @@ export function AppSidebar() {
               ) : (
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
-                    <span>No analyses found</span>
+                    <span>Nothing Yet</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}

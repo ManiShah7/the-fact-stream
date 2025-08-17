@@ -7,6 +7,7 @@ import { readUrl } from "@server/lib/puppeteerUtils";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { PostAnalyzeBody } from "@server/types/context";
 import { modelResponse } from "@server/lib/db/schema/modelResponse";
+import type { ErrorResponse } from "@shared/types";
 
 export const analyseRoutes = new Hono()
   .get("/", authMiddleware, async (c) => {
@@ -28,6 +29,76 @@ export const analyseRoutes = new Hono()
     }));
 
     return c.json(logs);
+  })
+  .get(":id", authMiddleware, async (c) => {
+    try {
+      const user = c.get("user");
+      const id = c.req.param("id");
+
+      const log = await db
+        .select()
+        .from(analyzeLogs)
+        .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.id)))
+        .limit(1)
+        .then((res) => res[0]);
+
+      if (!log) {
+        return c.json(
+          {
+            message: "Log not found or access denied",
+            success: false,
+          } as ErrorResponse,
+          404
+        );
+      }
+
+      if (!log.modelResponseId) {
+        return c.json(
+          {
+            message: "No model response associated with this log",
+            success: false,
+          } as ErrorResponse,
+          404
+        );
+      }
+
+      const modelResponseData = await db
+        .select()
+        .from(modelResponse)
+        .where(eq(modelResponse.id, log.modelResponseId))
+        .limit(1)
+        .then((res) => res[0]);
+
+      if (!modelResponseData) {
+        return c.json(
+          {
+            message: "Model response data not found",
+            success: false,
+          } as ErrorResponse,
+          404
+        );
+      }
+
+      return c.json({
+        data: {
+          ...log,
+          modelResponse: modelResponseData,
+        },
+        success: true,
+      });
+    } catch (error) {
+      console.error("Error in get log endpoint:", error);
+      return c.json(
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred",
+          success: false,
+        } as ErrorResponse,
+        500
+      );
+    }
   })
   .post("/", authMiddleware, async (c) => {
     const { url, publish } = (await c.req.json()) as PostAnalyzeBody;
@@ -53,43 +124,28 @@ export const analyseRoutes = new Hono()
       })
       .returning({ id: modelResponse.id });
 
-    await db.insert(analyzeLogs).values({
-      userId: user.id,
-      url,
-      articleText: pageContent,
-      modelResponseId: insertedModelResponse[0]?.id,
-      isPublished: publish,
+    const insertedAnalyzeLog = await db
+      .insert(analyzeLogs)
+      .values({
+        userId: user.id,
+        url,
+        articleText: pageContent,
+        modelResponseId: insertedModelResponse[0]?.id,
+        isPublished: publish,
+      })
+      .returning();
+
+    return c.json({
+      data: insertedAnalyzeLog[0],
+      success: true,
     });
-
-    return c.json(analysis);
-  })
-  .get(":id", authMiddleware, async (c) => {
-    const user = c.get("user");
-    const id = c.req.param("id");
-
-    if (!id) {
-      return c.json({ error: "ID is required" }, 400);
-    }
-
-    const log = await db
-      .select()
-      .from(analyzeLogs)
-      .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.id)))
-      .limit(1)
-      .then((res) => res[0]);
-
-    if (!log) {
-      return c.json({ error: "Log not found" }, 404);
-    }
-
-    return c.json(log);
   })
   .patch(":id", authMiddleware, async (c) => {
     const user = c.get("user");
     const id = c.req.param("id");
 
     if (!id) {
-      return c.json({ error: "ID is required" }, 400);
+      return c.json({ error: "ID is required", success: false }, 400);
     }
 
     const { publish } = (await c.req.json()) as { publish: boolean };

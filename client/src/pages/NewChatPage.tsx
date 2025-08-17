@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAnalyzeNewsMutation } from "@/queries/analyzeNewsQueries";
-import type { ModelResponse } from "../../../shared/src/types/news";
+import type { ModelResponse } from "shared/src/types/analyses";
 
 const NewChatPage = () => {
   const [url, setUrl] = useState("");

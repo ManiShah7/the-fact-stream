@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  boolean,
-  jsonb,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
 import { modelResponse } from "./modelResponse";
 
 export const analyzeLogs = pgTable("analyze_logs", {
@@ -15,5 +8,6 @@ export const analyzeLogs = pgTable("analyze_logs", {
   articleText: text("article_text"),
   modelResponseId: uuid("model_response_id").references(() => modelResponse.id),
   isPublished: boolean("is_published").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

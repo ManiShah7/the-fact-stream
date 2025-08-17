@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { parseModelResponse } from "@server/helpers/jsonHelpers";
-import type { ModelResponse } from "@shared/types/news";
+import type { ModelResponse } from "@shared/types/analyses";
 
 /**
  * Analyzes a news article text using Gemini and returns structured analysis.

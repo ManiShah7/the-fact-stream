@@ -1,5 +1,10 @@
 import { toast } from "react-toastify";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  skipToken,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { client } from "./client";
 
 type AnalyzeNewsRequest = {
@@ -15,7 +20,7 @@ const analyzeNewsMutation = async ({ url, publish }: AnalyzeNewsRequest) => {
   try {
     const data = await res.json();
 
-    if (data.error || data.success === false) {
+    if (("error" in data && data.error) || data.success === false) {
       throw new Error(data.error || "News analysis failed");
     }
     return data;
@@ -56,15 +61,43 @@ export const useAnalyzeNewsMutation = () => {
   });
 };
 
+// const getAnalyzedNewsUrlAndTitleQuery = async () => {
+
+// }
+
 const getAnalyzedNewsForUserQuery = async () => {
   const res = await client.api.v1.analyse.$get();
-  if (!res.ok) throw new Error("Failed to get analyzed news");
-  return res.json();
+
+  try {
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching analyzed news:", error);
+  }
 };
 
 export const useGetAnalyzedNews = () => {
   return useQuery({
     queryKey: ["analyzed-news"],
     queryFn: getAnalyzedNewsForUserQuery,
+  });
+};
+
+const getSingleAnalyzedNewsQuery = async ({ id }: { id: string }) => {
+  const res = await client.api.v1.analyse[":id"].$get({ param: { id } });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error status: ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  return data;
+};
+
+export const useGetSingleAnalyzedNews = (id?: string) => {
+  return useQuery({
+    queryKey: ["analyzed-news", id],
+    queryFn: id ? () => getSingleAnalyzedNewsQuery({ id }) : skipToken,
   });
 };

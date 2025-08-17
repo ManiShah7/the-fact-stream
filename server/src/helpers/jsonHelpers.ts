@@ -1,4 +1,4 @@
-import type { ModelResponse } from "@shared/types/news";
+import type { ModelResponse } from "@shared/types/analyses";
 
 const cleanJsonString = (text: string): string => {
   return text

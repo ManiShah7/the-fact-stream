@@ -9,8 +9,8 @@ const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 const SignUpPage = lazy(() => import("@/pages/SignUpPage"));
 const NewChatPage = lazy(() => import("@/pages/NewChatPage"));
 const PublishedNewsPage = lazy(() => import("@/pages/PublishedNewsPage"));
-const SingleChat = lazy(() => import("@/pages/chats/SingleChat"));
-const RecentChats = lazy(() => import("@/pages/chats/RecentChats"));
+const SingleAnalysis = lazy(() => import("@/pages/analyses/SingleAnalysis"));
+const AllAnalyses = lazy(() => import("@/pages/analyses/AllAnalyses"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
@@ -24,11 +24,11 @@ const Routes = () => {
           <Route path="*" element={<LoadingSpinner />} />
         ) : auth?.user ? (
           <Route path="/" element={<Layout />}>
-            <Route index element={<NewChatPage />} />
+            <Route index element={<Navigate to="new" />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/new" element={<NewChatPage />} />
-            <Route path="/analyses" element={<RecentChats />} />
-            <Route path="/analyses/:chatId" element={<SingleChat />} />
+            <Route path="/analyses" element={<AllAnalyses />} />
+            <Route path="/analyses/:chatId" element={<SingleAnalysis />} />
             <Route path="/published-news" element={<PublishedNewsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
