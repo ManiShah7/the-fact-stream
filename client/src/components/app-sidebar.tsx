@@ -33,7 +33,7 @@ import { useGetAnalyzedNews } from "@/queries/analyzeNewsQueries";
 
 const items = [
   {
-    title: "New Chat",
+    title: "New Analysis",
     url: "/new",
     icon: CirclePlus,
   },

@@ -29,6 +29,12 @@ import {
 import { useGetSingleAnalyzedNews } from "@/queries/analyzeNewsQueries";
 import { Badge } from "@/components/ui/badge";
 import LoadingSpinner from "@/components/loading-spinner";
+import {
+  getStatusColor,
+  getStatusIcon,
+  getStatusText,
+} from "@/utils/analysesUtils";
+import { formatRelativeTime } from "@/utils/dateTimeUtils";
 
 const SingleAnalysis = () => {
   const { chatId } = useParams();
@@ -37,48 +43,6 @@ const SingleAnalysis = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data, isPending, error } = useGetSingleAnalyzedNews(chatId);
-
-  const getStatusIcon = (credibilityScore: number) => {
-    if (credibilityScore >= 80) {
-      return <Shield className="w-5 h-5 text-green-600" />;
-    } else if (credibilityScore >= 50) {
-      return <Shield className="w-5 h-5 text-yellow-600" />;
-    } else {
-      return <Shield className="w-5 h-5 text-red-600" />;
-    }
-  };
-
-  const getStatusColor = (credibilityScore: number) => {
-    if (credibilityScore >= 80) {
-      return "bg-green-100 text-green-800 border-green-200";
-    } else if (credibilityScore >= 50) {
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    } else {
-      return "bg-red-100 text-red-800 border-red-200";
-    }
-  };
-
-  const getStatusText = (credibilityScore: number) => {
-    if (credibilityScore >= 80) {
-      return "High";
-    } else if (credibilityScore >= 50) {
-      return "Medium";
-    } else {
-      return "Low";
-    }
-  };
-
-  const formatRelativeTime = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
-  };
 
   const handleReanalyze = async () => {
     setIsReanalyzing(true);
