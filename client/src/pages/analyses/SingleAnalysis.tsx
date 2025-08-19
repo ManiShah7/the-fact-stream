@@ -1,29 +1,29 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft,
   Shield,
   ExternalLink,
-  Globe,
   Share,
   Archive,
   MoreVertical,
-  RefreshCw,
   ThumbsUp,
   ThumbsDown,
   Flag,
   Calendar,
   CalendarSync,
+  RotateCcw,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useGetSingleAnalyzedNews } from "@/queries/analyzeNewsQueries";
@@ -39,20 +39,19 @@ import { formatRelativeTime } from "@/utils/dateTimeUtils";
 const SingleAnalysis = () => {
   const { chatId } = useParams();
   const navigate = useNavigate();
-  const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const [publish, setPublish] = useState(false);
+  const [reAnalyze, setReAnalyze] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data, isPending, error } = useGetSingleAnalyzedNews(chatId);
 
-  const handleReanalyze = async () => {
-    setIsReanalyzing(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setIsReanalyzing(false);
-  };
-
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
   };
+
+  useEffect(() => {
+    setPublish(Boolean(data?.data.isPublished));
+  }, [data?.data.isPublished]);
 
   return (
     <div className="flex flex-col h-full max-w-5xl mx-auto">
@@ -69,21 +68,18 @@ const SingleAnalysis = () => {
                 {getStatusIcon(
                   Number(data.data.modelResponse.credibilityScore)
                 )}
-                <h1 className="text-xl font-semibold">Fact Check Analysis</h1>
+                <h1 className="text-lg font-semibold">Fact Check Analysis</h1>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={getStatusColor(
-                  Number(data.data.modelResponse.credibilityScore)
-                )}
+              <Button
+                disabled={publish === data.data.isPublished && !reAnalyze}
+                size="sm"
               >
-                {getStatusText(
-                  Number(data.data.modelResponse.credibilityScore)
-                )}
-              </Badge>
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Update
+              </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -92,22 +88,10 @@ const SingleAnalysis = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={handleReanalyze}
-                    disabled={isReanalyzing}
-                  >
-                    <RefreshCw
-                      className={`w-4 h-4 mr-2 ${
-                        isReanalyzing ? "animate-spin" : ""
-                      }`}
-                    />
-                    Re-analyze
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleShare}>
                     <Share className="w-4 h-4 mr-2" />
-                    Share Analysis
+                    Share
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem>
                     <Archive className="w-4 h-4 mr-2" />
                     Archive
@@ -129,6 +113,16 @@ const SingleAnalysis = () => {
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="w-5 h-5 text-primary" />
                       Analysis Complete
+                      <Badge
+                        variant="outline"
+                        className={getStatusColor(
+                          Number(data.data.modelResponse.credibilityScore)
+                        )}
+                      >
+                        {getStatusText(
+                          Number(data.data.modelResponse.credibilityScore)
+                        )}
+                      </Badge>
                     </CardTitle>
 
                     <div>
@@ -158,10 +152,15 @@ const SingleAnalysis = () => {
                       </h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <Globe className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          <a
+                            href={data.data.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-300 hover:underline"
+                          >
                             {new URL(data.data.url).hostname}
-                          </span>
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -205,16 +204,39 @@ const SingleAnalysis = () => {
                       </Button>
                     </div>
 
-                    <Button asChild>
-                      <a
-                        href={data.data.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Read Original
-                      </a>
-                    </Button>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Label
+                          htmlFor="publish-check"
+                          className="cursor-pointer"
+                        >
+                          Publish
+                        </Label>
+
+                        <Switch
+                          id="publish-check"
+                          className="cursor-pointer"
+                          checked={publish}
+                          onCheckedChange={setPublish}
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Label
+                          htmlFor="re-analyze-check"
+                          className="cursor-pointer"
+                        >
+                          Re-analyze
+                        </Label>
+
+                        <Switch
+                          id="re-analyze-check"
+                          className="cursor-pointer"
+                          checked={reAnalyze}
+                          onCheckedChange={setReAnalyze}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

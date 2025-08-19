@@ -44,7 +44,7 @@ const AllAnalyses = () => {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-6xl mx-auto">
+    <div className="flex flex-col h-full max-w-4xl mx-auto">
       {isLoading ? (
         <LoadingSpinner />
       ) : analyzedNews ? (
