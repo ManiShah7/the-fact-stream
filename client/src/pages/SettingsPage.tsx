@@ -19,7 +19,12 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  Palette,
+  Monitor,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/providers/ThemeProvider";
 
 type FormState = {
   isLoading: boolean;
@@ -28,6 +33,7 @@ type FormState = {
 };
 
 const SettingsPage = () => {
+  const { theme, setTheme } = useTheme();
   const [currentEmail, setCurrentEmail] = useState("user@example.com");
   const [newEmail, setNewEmail] = useState("");
   const [emailPassword, setEmailPassword] = useState("");
@@ -176,14 +182,55 @@ const SettingsPage = () => {
       <div className="flex items-center gap-3 p-4 border-b">
         <SettingsIcon className="w-6 h-6 text-primary" />
         <div>
-          <h1 className="text-xl font-semibold">Account Settings</h1>
+          <h1 className="text-xl font-semibold">Settings</h1>
           <p className="text-sm text-muted-foreground">
-            Manage your email address and password
+            Manage your account preferences and appearance
           </p>
         </div>
       </div>
 
       <div className="flex-1 p-4 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5" />
+              Theme Appearance
+            </CardTitle>
+            <CardDescription>
+              Choose your preferred theme. System will automatically switch
+              based on your device settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Button
+                variant={theme === "light" ? "default" : "outline"}
+                className="justify-start gap-2"
+                onClick={() => setTheme("light")}
+              >
+                <Sun className="w-4 h-4" />
+                Light
+              </Button>
+              <Button
+                variant={theme === "dark" ? "default" : "outline"}
+                className="justify-start gap-2"
+                onClick={() => setTheme("dark")}
+              >
+                <Moon className="w-4 h-4" />
+                Dark
+              </Button>
+              <Button
+                variant={theme === "system" ? "default" : "outline"}
+                className="justify-start gap-2"
+                onClick={() => setTheme("system")}
+              >
+                <Monitor className="w-4 h-4" />
+                System
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

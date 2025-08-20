@@ -38,7 +38,7 @@ const items = [
     icon: CirclePlus,
   },
   {
-    title: "All Analyses",
+    title: "My Analyses",
     url: "/analyses",
     icon: MessagesSquare,
   },

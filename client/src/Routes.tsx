@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/layout";
 import LoadingSpinner from "@/components/loading-spinner";
 
+const HomePage = lazy(() => import("@/pages/HomePage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 const SignUpPage = lazy(() => import("@/pages/SignUpPage"));
@@ -20,11 +21,11 @@ const Routes = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <RRRoutes>
+        <Route index element={<HomePage />} />
         {auth?.loading ? (
           <Route path="*" element={<LoadingSpinner />} />
         ) : auth?.user ? (
           <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="new" />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/new" element={<NewChatPage />} />
             <Route path="/analyses" element={<AllAnalyses />} />

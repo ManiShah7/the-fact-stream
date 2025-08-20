@@ -1,22 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  Send,
-  Link2,
-  Shield,
-  LoaderCircle,
-  CheckCircle,
-  AlertTriangle,
-  Info,
-  X,
-} from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Send, Link2, Shield, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useAnalyzeNewsMutation } from "@/queries/analyzeNewsQueries";
-import type { ModelResponse } from "shared/src/types/analyses";
 
 const NewChatPage = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,11 +12,7 @@ const NewChatPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [url, setUrl] = useState("");
 
-  const {
-    mutate: analyzeNewsMutation,
-    isPending,
-    data,
-  } = useAnalyzeNewsMutation();
+  const { mutate: analyzeNewsMutation, isPending } = useAnalyzeNewsMutation();
 
   const isValidUrl = (string: string) => {
     try {
@@ -118,16 +102,6 @@ const NewChatPage = () => {
             <p className="text-xs text-muted-foreground">
               Enter a valid news article URL to check its reliability
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setUrl("");
-                setAnalysisResult(null);
-              }}
-            >
-              Analyze New Article
-            </Button>
           </div>
         </div>
       </div>
