@@ -7,11 +7,11 @@ import Logo from "@/components/logo";
 import { useAuth } from "@/hooks/useAuth";
 
 const HomePage = () => {
-  const user = useAuth();
+  const auth = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-purple-900/20">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
         <header className="text-center mb-16">
           <div className="flex justify-center mb-6">
             <Logo />
@@ -96,12 +96,12 @@ const HomePage = () => {
                 </Badge>
               </div>
 
-              <Link to={user ? "/new" : "/login"}>
+              <Link to={auth?.user ? "/new" : "/login"}>
                 <Button
                   variant="outline"
                   className="w-full group-hover:bg-accent transition-colors"
                 >
-                  {user ? "Start Analysis" : "Login to Analyze News"}
+                  {auth?.user ? "Start Analysis" : "Login to Analyze News"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>

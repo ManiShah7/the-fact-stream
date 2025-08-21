@@ -66,7 +66,7 @@ const NewChatPage = () => {
           </div>
         </ScrollArea>
 
-        <div className="bg-background mt-6">
+        <div className="mt-6">
           {isAnalyzing ? (
             <>
               We have received your request and are analyzing the article. This
@@ -81,7 +81,7 @@ const NewChatPage = () => {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="Paste a news article URL here..."
-                  className="pl-10"
+                  className="pl-10 bg-background "
                   type="url"
                   disabled={isPending}
                 />
