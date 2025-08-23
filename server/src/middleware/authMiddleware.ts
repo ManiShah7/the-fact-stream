@@ -1,6 +1,5 @@
 import { getCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
-import type { Next } from "hono";
 import { createMiddleware } from "hono/factory";
 import { db } from "@server/lib/db";
 import { HTTPException } from "hono/http-exception";
@@ -37,7 +36,6 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     await next();
   } catch (err) {
     console.error("Auth middleware error:", err);
-    if (err instanceof HTTPException) throw err;
-    throw new HTTPException(401, { message: "Unauthorized" });
+    return c.json({ error: "Unauthorized" }, 401);
   }
 });

@@ -26,7 +26,7 @@ const Routes = () => {
           <Route path="*" element={<LoadingSpinner />} />
         ) : auth?.user ? (
           <Route path="/" element={<Layout />}>
-            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<Navigate to="/new" replace />} />
             <Route path="/new" element={<NewChatPage />} />
             <Route path="/analyses" element={<AllAnalyses />} />
             <Route path="/analyses/:chatId" element={<SingleAnalysis />} />

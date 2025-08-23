@@ -5,9 +5,11 @@ import { AuthContext, AuthContextType } from "@/context/AuthContext";
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { data, isLoading, error } = useUserQuery();
 
+  console.log(data);
+
   const contextValue = useMemo(
     (): AuthContextType => ({
-      user: data && !("error" in data) ? data : null,
+      user: data || null,
       loading: isLoading,
       error,
     }),

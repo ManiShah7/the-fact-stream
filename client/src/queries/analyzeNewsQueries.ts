@@ -101,3 +101,34 @@ export const useGetSingleAnalyzedNews = (id?: string) => {
     queryFn: id ? () => getSingleAnalyzedNewsQuery({ id }) : skipToken,
   });
 };
+
+const getPaginatedPublishedNewsQuery = async ({
+  page,
+  pageSize,
+}: {
+  page: number;
+  pageSize: number;
+}) => {
+  const res = await client.api.v1.published.$get();
+
+  if (!res.ok) {
+    throw new Error(`HTTP error status: ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  return data;
+};
+
+export const useGetPaginatedPublishedNews = ({
+  page,
+  pageSize,
+}: {
+  page: number;
+  pageSize: number;
+}) => {
+  return useQuery({
+    queryKey: ["published-news", page, pageSize],
+    queryFn: () => getPaginatedPublishedNewsQuery({ page, pageSize }),
+  });
+};

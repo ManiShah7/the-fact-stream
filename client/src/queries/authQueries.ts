@@ -10,6 +10,13 @@ type LoginRequest = {
 
 const getCurrentUser = async () => {
   const res = await client.api.v1.auth.me.$get();
+
+  console.log(res);
+
+  if (res.status === 401 || !res.ok) {
+    return null;
+  }
+
   return res.json();
 };
 
@@ -50,7 +57,7 @@ export const useLoginMutation = () => {
       });
 
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/");
+      navigate("/new");
     },
     onError: (error, _variables, toastId) => {
       toast.update(toastId as string, {

@@ -1,3 +1,4 @@
+import dotEnv from "@dotenvx/dotenvx";
 import { GoogleGenAI } from "@google/genai";
 import { parseModelResponse } from "@server/helpers/jsonHelpers";
 import type { ModelResponse } from "@shared/types/analyses";
@@ -14,7 +15,6 @@ export const analyzeArticleContent = async <T>(
       rawOutput: string | null | undefined;
     }
 > => {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   const prompt = `You are an expert political news analyst. Your task is to analyze a news article text provided to you and return a structured JSON object.
 
 First, determine whether the text represents a valid news article. Users might send random, fake, or irrelevant links, so you must carefully evaluate if the content resembles an actual news report. 
@@ -36,7 +36,9 @@ If the text looks like a valid news article, analyze it and return:
   "credibilityScore": number (1 to 100),
   "credibilityReason": "string",
   "sarcasmOrSatire": "yes | no | unsure",
-  "recommendedAction": "string"
+  "recommendedAction": "string",
+  "imageUrl": "string",
+  "author": "string"
 }
 
 Your analysis should be objective and unbiased. The "sarcasmOrSatire" field should indicate whether the text appears sarcastic, satirical, or ironic.
@@ -48,18 +50,38 @@ Here is the article text:
 ${articleText}
 =====
 `;
+  let text: string | undefined;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      thinkingConfig: {
-        thinkingBudget: -1, // dynamic thinking budget
+  if (!dotEnv.get("NODE_ENV") || dotEnv.get("NODE_ENV") !== "development") {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        thinkingConfig: {
+          thinkingBudget: -1, // dynamic thinking budget
+        },
       },
-    },
-  });
+    });
 
-  const text = response.text;
+    text = response.text;
+  } else {
+    console.log("Responding from gemma");
+    const response = await fetch("http://127.0.0.1:11434/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt, model: "gemma3:270m", stream: false }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch from local server");
+    }
+    const data = await response.json();
+
+    text = data.response;
+  }
 
   try {
     return parseModelResponse(text);
