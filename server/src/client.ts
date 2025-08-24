@@ -18,3 +18,11 @@ export const hcWithType = (
     },
   });
 };
+
+// const ws = hcWithType("http://localhost:9000").api.v1.ws.$ws(0);
+
+// ws.addEventListener("open", () => {
+//   setInterval(() => {
+//     ws.send(new Date().toString());
+//   }, 1000);
+// });

@@ -11,8 +11,6 @@ type LoginRequest = {
 const getCurrentUser = async () => {
   const res = await client.api.v1.auth.me.$get();
 
-  console.log(res);
-
   if (res.status === 401 || !res.ok) {
     return null;
   }

@@ -1,3 +1,4 @@
+import useWebSocket from "react-use-websocket";
 import { Link } from "react-router";
 import { Shield, Newspaper, ArrowRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,27 @@ import { useAuth } from "@/hooks/useAuth";
 
 const HomePage = () => {
   const auth = useAuth();
+
+  const socketUrl = "ws://localhost:9000/api/v1/ws";
+  const { sendMessage, lastMessage } = useWebSocket(socketUrl, {
+    onOpen: () => console.log("opened"),
+    onMessage: (event) => {
+      const data = event.data;
+
+      if (data === "ping") {
+        console.log("Received ping from server, sending pong");
+        sendMessage("pong");
+        return;
+      }
+
+      if (data === "pong") {
+        console.log("Received pong from server");
+        return;
+      }
+    },
+    //Will attempt to reconnect on all close events, such as server shutting down
+    shouldReconnect: () => true,
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-purple-900/20">

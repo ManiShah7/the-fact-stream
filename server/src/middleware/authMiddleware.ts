@@ -35,7 +35,7 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     c.set("user", { ...user, sessionId: session.id });
     await next();
   } catch (err) {
-    console.error("Auth middleware error:", err);
+    // console.error("Auth middleware error:", err);
     return c.json({ error: "Unauthorized" }, 401);
   }
 });
