@@ -1,0 +1,47 @@
+import { Outlet, useNavigate } from "react-router";
+import {
+  Navbar05,
+  type Navbar05NavItem,
+} from "@/components/ui/shadcn-io/navbar-05";
+import { useAuth } from "@/hooks/useAuth";
+import { CirclePlus, MessagesSquare, Rss } from "lucide-react";
+
+const NavWrapper = () => {
+  const auth = useAuth();
+  const navigate = useNavigate();
+
+  const items: Navbar05NavItem[] = [
+    {
+      label: "New Analysis",
+      href: "/new",
+      icon: CirclePlus,
+    },
+    {
+      label: "My Analyses",
+      href: "/analyses",
+      icon: MessagesSquare,
+    },
+    {
+      label: "Published News",
+      href: "/published-news",
+      icon: Rss,
+    },
+  ];
+
+  return (
+    <>
+      <Navbar05
+        userEmail={auth?.user?.email}
+        navigationLinks={items}
+        logoHref="/"
+        onNavItemClick={(href) => {
+          navigate(href);
+        }}
+      />
+
+      <Outlet />
+    </>
+  );
+};
+
+export default NavWrapper;

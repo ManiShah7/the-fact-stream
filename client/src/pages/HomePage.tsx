@@ -32,7 +32,7 @@ const HomePage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-purple-900/20">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <header className="text-center mb-16">
           <div className="flex justify-center mb-6">
@@ -45,6 +45,7 @@ const HomePage = () => {
             Your trusted source for verified news analysis and reliable
             journalism
           </p>
+          Settings
         </header>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
