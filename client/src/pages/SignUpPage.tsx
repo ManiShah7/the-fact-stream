@@ -58,6 +58,8 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
     success: false,
   });
 
+  // const
+
   const updateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear errors when user starts typing
@@ -76,7 +78,6 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
       return "Password must be at least 8 characters";
     if (formData.password !== formData.confirmPassword)
       return "Passwords do not match";
-    if (!formData.agreeToTerms) return "You must agree to the Terms of Service";
     return null;
   };
 

@@ -151,8 +151,8 @@ const NotificationMenu = ({
 
 // User Menu Component
 const UserMenu = ({
-  userName = "John Doe",
-  userEmail = "john@example.com",
+  userName,
+  userEmail,
   userAvatar,
   onItemClick,
 }: {
@@ -181,7 +181,7 @@ const UserMenu = ({
             <AvatarImage src={userAvatar} alt={userName} />
             <AvatarFallback className="text-xs">
               {userName
-                .split(" ")
+                ?.split(" ")
                 .map((n) => n[0])
                 .join("")}
             </AvatarFallback>
@@ -249,8 +249,8 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
       logo = <Globe size={18} />,
       logoHref = "#",
       navigationLinks,
-      userName = "John Doe",
-      userEmail = "john@example.com",
+      userName,
+      userEmail,
       userAvatar,
       notificationCount = 3,
       onNavItemClick,
@@ -383,24 +383,34 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
             </div>
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <InfoMenu onItemClick={onInfoItemClick} />
+          {userName ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <InfoMenu onItemClick={onInfoItemClick} />
 
-              <NotificationMenu
-                notificationCount={notificationCount}
-                onItemClick={onNotificationItemClick}
+                <NotificationMenu
+                  notificationCount={notificationCount}
+                  onItemClick={onNotificationItemClick}
+                />
+              </div>
+
+              <UserMenu
+                userName={userName}
+                userEmail={userEmail}
+                userAvatar={userAvatar}
+                onItemClick={onUserItemClick}
               />
             </div>
-            {/* User menu */}
-            <UserMenu
-              userName={userName}
-              userEmail={userEmail}
-              userAvatar={userAvatar}
-              onItemClick={onUserItemClick}
-            />
-          </div>
+          ) : (
+            <Button
+              variant="default"
+              onClick={() => {
+                navigate("/signup");
+              }}
+            >
+              Register
+            </Button>
+          )}
         </div>
       </header>
     );

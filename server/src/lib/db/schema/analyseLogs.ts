@@ -9,5 +9,8 @@ export const analyzeLogs = pgTable("analyze_logs", {
   modelResponseId: uuid("model_response_id").references(() => modelResponse.id),
   isPublished: boolean("is_published").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });

@@ -7,6 +7,7 @@ import type { SignInBody } from "@server/types/context";
 import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { SupabaseSignInResponse } from "@shared/types/user";
+import { users } from "@server/lib/db/schema/users";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c) => {
@@ -82,25 +83,17 @@ export const authRoutes = new Hono()
     });
   })
   .post("/signup", async (c) => {
-    const { name, phone, email, password } = await c.req.json();
+    const { firstName, lastName, email, password } = await c.req.json();
 
-    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: process.env.SUPABASE_ANON_KEY!,
-      },
-      body: JSON.stringify({ email, password, phone, data: { name } }),
+    const createdUser = await db.insert(users).values({
+      firstName,
+      lastName,
+      email,
+      password,
     });
 
-    const data = (await res.json()) as User;
-
-    if (!res.ok) {
-      return c.json({ error: "Signup failed", details: data }, 400);
-    }
-
     return c.json({
-      data,
+      data: createdUser,
     });
   })
   .post("/signout", authMiddleware, async (c) => {

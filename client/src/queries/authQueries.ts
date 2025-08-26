@@ -8,6 +8,52 @@ type LoginRequest = {
   password: string;
 };
 
+const signUpUser = async (data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}) => {
+  const res = await client.api.v1.auth.signup.$post({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to sign up");
+  }
+
+  return res.json();
+};
+
+export const useSignUpMutation = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: signUpUser,
+    onMutate: () => toast.loading("Signing up..."),
+    onSuccess: (_data, _variables, toastId) => {
+      toast.update(toastId, {
+        render: "Sign up successful. Redirecting...",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      navigate("/new");
+    },
+    onError: (error, _variables, toastId) => {
+      toast.update(toastId as string, {
+        render: error instanceof Error ? error.message : "Sign up failed",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    },
+  });
+};
+
 const getCurrentUser = async () => {
   const res = await client.api.v1.auth.me.$get();
 
