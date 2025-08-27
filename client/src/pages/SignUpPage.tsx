@@ -24,6 +24,7 @@ import {
   User,
   CheckCircle,
 } from "lucide-react";
+import { useSignUpMutation } from "@/queries/authQueries";
 
 type FormState = {
   isLoading: boolean;
@@ -37,7 +38,6 @@ type FormData = {
   email: string;
   password: string;
   confirmPassword: string;
-  agreeToTerms: boolean;
 };
 
 const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
@@ -47,7 +47,6 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
     email: "",
     password: "",
     confirmPassword: "",
-    agreeToTerms: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -58,7 +57,7 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
     success: false,
   });
 
-  // const
+  const { mutate: signUp, isPending } = useSignUpMutation();
 
   const updateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -115,7 +114,7 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
     setFormState({ isLoading: true, error: "", success: false });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      signUp(formData);
       setFormState({ isLoading: false, error: "", success: true });
     } catch (error) {
       console.error("Registration error:", error);
@@ -127,57 +126,57 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
     }
   };
 
-  if (formState.success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/30">
-        <div className="w-full max-w-md text-center space-y-6">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
+  // if (formState.success) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/30">
+  //       <div className="w-full max-w-md text-center space-y-6">
+  //         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+  //           <CheckCircle className="w-8 h-8 text-green-600" />
+  //         </div>
 
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-green-800">
-              Welcome Aboard!
-            </h1>
-            <p className="text-muted-foreground">
-              Your account has been created successfully. Please check your
-              email to verify your account.
-            </p>
-          </div>
+  //         <div className="space-y-2">
+  //           <h1 className="text-2xl font-bold text-green-800">
+  //             Welcome Aboard!
+  //           </h1>
+  //           <p className="text-muted-foreground">
+  //             Your account has been created successfully. Please check your
+  //             email to verify your account.
+  //           </p>
+  //         </div>
 
-          <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <Alert className="border-blue-200 bg-blue-50">
-                <Mail className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
-                  <strong>Verify your email</strong>
-                  <br />
-                  We've sent a verification link to{" "}
-                  <strong>{formData.email}</strong>. Click the link to activate
-                  your account and start fact-checking news!
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
+  //         <Card className="shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+  //           <CardContent className="p-6">
+  //             <Alert className="border-blue-200 bg-blue-50">
+  //               <Mail className="h-4 w-4 text-blue-600" />
+  //               <AlertDescription className="text-blue-800">
+  //                 <strong>Verify your email</strong>
+  //                 <br />
+  //                 We've sent a verification link to{" "}
+  //                 <strong>{formData.email}</strong>. Click the link to activate
+  //                 your account and start fact-checking news!
+  //               </AlertDescription>
+  //             </Alert>
+  //           </CardContent>
+  //         </Card>
 
-          <div className="space-y-3">
-            <Button asChild className="w-full">
-              <Link to="/login">Continue to Sign In</Link>
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Didn't receive an email? Check your spam folder or{" "}
-              <button className="text-primary hover:underline">
-                resend verification
-              </button>
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  //         <div className="space-y-3">
+  //           <Button asChild className="w-full">
+  //             <Link to="/login">Continue to Sign In</Link>
+  //           </Button>
+  //           <p className="text-xs text-muted-foreground">
+  //             Didn't receive an email? Check your spam folder or{" "}
+  //             <button className="text-primary hover:underline">
+  //               resend verification
+  //             </button>
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/30">
       <div className={cn("w-full max-w-md space-y-6", className)} {...props}>
         {/* Header */}
         <div className="text-center space-y-4">

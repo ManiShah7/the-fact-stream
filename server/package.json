@@ -8,10 +8,12 @@
     "dev": "bun --watch run src/index.ts && tsc --watch"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "hono": "^4.7.11",
     "shared": "workspace:*"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest"
   }
 }

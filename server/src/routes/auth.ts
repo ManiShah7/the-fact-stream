@@ -8,89 +8,87 @@ import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { SupabaseSignInResponse } from "@shared/types/user";
 import { users } from "@server/lib/db/schema/users";
+import { hashPassword, verifyPassword } from "@server/helpers/password";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c) => {
     const { email, password } = (await c.req.json()) as SignInBody;
 
-    const res = await fetch(
-      `${process.env.SUPABASE_URL}/auth/v1/token?grant_type=password`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: process.env.SUPABASE_ANON_KEY!,
-        },
-        body: JSON.stringify({ email, password }),
-      }
-    );
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+      .then((res) => res[0]);
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      return c.json({ error: "Sign in failed", details: errorData }, 400);
+    if (!user || !(await verifyPassword(password, user.password))) {
+      return c.json({ error: "Invalid email or password" }, 401);
     }
-
-    const data = (await res.json()) as SupabaseSignInResponse;
 
     const existingSession = await db
       .select()
       .from(userSessions)
-      .where(eq(userSessions.userId, data.user.id))
+      .where(eq(userSessions.userId, user.id))
       .limit(1)
       .then((res) => res[0]);
 
     let session: typeof existingSession;
 
-    if (existingSession) {
-      session = await db
-        .update(userSessions)
-        .set({ refreshToken: data.refresh_token })
-        .where(eq(userSessions.id, existingSession.id))
-        .returning()
-        .then((res) => res[0]);
-    } else {
-      session = await db
-        .insert(userSessions)
-        .values({
-          refreshToken: data.refresh_token,
-          userId: data.user.id,
-        })
-        .returning()
-        .then((res) => res[0]);
-    }
+    // if (existingSession) {
+    //   session = await db
+    //     .update(userSessions)
+    //     .set({ refreshToken: data.refresh_token })
+    //     .where(eq(userSessions.id, existingSession.id))
+    //     .returning()
+    //     .then((res) => res[0]);
+    // } else {
+    //   session = await db
+    //     .insert(userSessions)
+    //     .values({
+    //       refreshToken: data.refresh_token,
+    //       userId: data.user.id,
+    //     })
+    //     .returning()
+    //     .then((res) => res[0]);
+    // }
 
-    setCookie(c, "access_token", data.access_token, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 3600,
-      sameSite: "Lax",
-      secure: true,
-    });
+    // setCookie(c, "access_token", data.access_token, {
+    //   httpOnly: true,
+    //   path: "/",
+    //   maxAge: 3600,
+    //   sameSite: "Lax",
+    //   secure: true,
+    // });
 
-    setCookie(c, "session_id", session!.id, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 86400 * 7,
-      sameSite: "Lax",
-      secure: true,
-    });
+    // setCookie(c, "session_id", session!.id, {
+    //   httpOnly: true,
+    //   path: "/",
+    //   maxAge: 86400 * 7,
+    //   sameSite: "Lax",
+    //   secure: true,
+    // });
 
-    return c.json({
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-      },
-    });
+    // return c.json({
+    //   user: {
+    //     id: data.user.id,
+    //     email: data.user.email,
+    //   },
+    // });
   })
   .post("/signup", async (c) => {
     const { firstName, lastName, email, password } = await c.req.json();
 
-    const createdUser = await db.insert(users).values({
-      firstName,
-      lastName,
-      email,
-      password,
-    });
+    const createdUser = await db
+      .insert(users)
+      .values({
+        firstName,
+        lastName,
+        email,
+        password: await hashPassword(password),
+      })
+      .returning();
+
+    console.log("User created:", createdUser);
 
     return c.json({
       data: createdUser,
