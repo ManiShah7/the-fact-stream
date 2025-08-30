@@ -1,8 +1,8 @@
+import type { User } from "@shared/types/user";
 import type { Context } from "hono";
-import type { AuthenticatedUser } from "@server/helpers/authMiddlewareHelpers";
 
 type Variables = {
-  user: AuthenticatedUser;
+  user: User;
 };
 
 type AppEnv = {

@@ -10,7 +10,7 @@ export const success = <T>(
 
 export const failure = (
   message = "Error",
-  errors?: Array<{ field: string; message: string }>
+  errors?: { field?: string; message?: string }[]
 ): ApiResponse<null> => {
-  return { message, data: null, errors };
+  return { message, data: null, ...errors };
 };

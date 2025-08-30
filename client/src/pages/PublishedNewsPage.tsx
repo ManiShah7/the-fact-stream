@@ -51,8 +51,6 @@ const PublishedNewsPage = () => {
     pageSize: 10,
   });
 
-  console.log(data);
-
   return (
     <div className="flex flex-col h-full max-w-7xl mx-auto">
       <div className="flex items-center justify-between p-4 border-b">

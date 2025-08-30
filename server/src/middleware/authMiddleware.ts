@@ -2,36 +2,31 @@ import { getCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 import { db } from "@server/lib/db";
-import { HTTPException } from "hono/http-exception";
-// import { userSessions } from "@server/lib/db/schema/refreshTokens";
 import type { AppEnv } from "@server/types/context";
+import { failure } from "@server/helpers/apiHelper";
+import { validateToken } from "@server/helpers/jwtHelpers";
+import { users } from "@server/lib/db/schema/users";
 
 export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
+  const accessToken = getCookie(c, "accessToken");
+  if (!accessToken) return c.json(failure("Unauthorized!"));
+
   try {
-    const sessionId = getCookie(c, "session_id");
-    if (!sessionId) throw new HTTPException(401, { message: "Unauthorized" });
+    const validatedToken = await validateToken(accessToken);
 
-    // const session = await db
-    //   .select()
-    //   .from(userSessions)
-    //   .where(eq(userSessions.id, sessionId))
-    //   .limit(1)
-    //   .then((res) => res[0]);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, validatedToken.sub))
+      .limit(1);
 
-    // if (!session || !session.refreshToken) {
-    //   throw new HTTPException(401, { message: "Invalid session" });
-    // }
+    if (!user) {
+      return c.json(failure("User not found!"), 401);
+    }
 
-    const accessToken = getCookie(c, "access_token");
-    // if (!(accessToken && (await isValidAccessToken(accessToken)))) {
-    //   throw new HTTPException(401, { message: "Access token required" });
-    // }
-
-    // const user = await getUserFromToken(accessToken);
-    // c.set("user", { ...user, sessionId: session.id });
+    c.set("user", user);
     await next();
-  } catch (err) {
-    // console.error("Auth middleware error:", err);
-    return c.json({ error: "Unauthorized" }, 401);
+  } catch (error) {
+    return c.json(failure("Unauthorized!"));
   }
 });

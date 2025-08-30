@@ -1,9 +1,21 @@
-import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
-import { modelResponse } from "./modelResponse";
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  timestamp,
+  integer,
+  serial,
+} from "drizzle-orm/pg-core";
+import { modelResponse } from "@server/lib/db/schema/modelResponse";
+import { users } from "@server/lib/db/schema/users";
 
 export const analyzeLogs = pgTable("analyze_logs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
+  id: serial("id").primaryKey().primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id),
   url: text("url").notNull(),
   articleText: text("article_text"),
   modelResponseId: uuid("model_response_id").references(() => modelResponse.id),

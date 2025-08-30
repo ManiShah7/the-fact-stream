@@ -38,7 +38,9 @@ export const analyseRoutes = new Hono()
       const log = await db
         .select()
         .from(analyzeLogs)
-        .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.id)))
+        .where(
+          and(eq(analyzeLogs.id, Number(id)), eq(analyzeLogs.userId, user.id))
+        )
         .limit(1)
         .then((res) => res[0]);
 
@@ -153,7 +155,9 @@ export const analyseRoutes = new Hono()
     await db
       .update(analyzeLogs)
       .set({ isPublished: publish })
-      .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.id)))
+      .where(
+        and(eq(analyzeLogs.id, Number(id)), eq(analyzeLogs.userId, user.id))
+      )
       .execute();
 
     return c.json({ success: true });
@@ -168,7 +172,9 @@ export const analyseRoutes = new Hono()
 
     await db
       .delete(analyzeLogs)
-      .where(and(eq(analyzeLogs.id, id), eq(analyzeLogs.userId, user.id)))
+      .where(
+        and(eq(analyzeLogs.id, Number(id)), eq(analyzeLogs.userId, user.id))
+      )
       .execute();
 
     return c.json({ success: true });
