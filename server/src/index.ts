@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { jwt } from "hono/jwt";
+import type { JwtVariables } from "hono/jwt";
 import { cors } from "hono/cors";
 import { createBunWebSocket } from "hono/bun";
 import { authRoutes } from "@server/routes/auth";
@@ -8,13 +10,18 @@ import { websocketRoutes } from "@server/routes/websocket";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket();
 
-export const app = new Hono()
+type Variables = JwtVariables;
+
+export const app = new Hono<{ Variables: Variables }>()
   .use(
     cors({
       origin: process.env.CLIENT_URL as string,
       allowHeaders: ["Access-Control-Allow-Credentials", "Content-Type"],
       credentials: true,
     })
+    // jwt({
+    //   secret: "fjsojfklsa",
+    // })
   )
   .route("/api/v1/auth", authRoutes)
   .route("/api/v1/analyse", analyseRoutes)

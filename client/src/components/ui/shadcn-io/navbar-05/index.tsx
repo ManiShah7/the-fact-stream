@@ -402,14 +402,24 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
               />
             </div>
           ) : (
-            <Button
-              variant="default"
-              onClick={() => {
-                navigate("/signup");
-              }}
-            >
-              Register
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigate("/login");
+                }}
+              >
+                Login
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  navigate("/signup");
+                }}
+              >
+                Register
+              </Button>
+            </div>
           )}
         </div>
       </header>

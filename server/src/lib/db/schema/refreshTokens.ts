@@ -1,12 +1,13 @@
 import { pgTable, uuid, timestamp, text, integer } from "drizzle-orm/pg-core";
-import { users } from "./users";
+import { users } from "server/src/lib/db/schema/users";
 
-export const userSessions = pgTable("user_sessions", {
+export const refreshTokens = pgTable("refresh_tokens", {
   id: uuid("id").primaryKey().defaultRandom(),
-  refreshToken: text("refresh_token").notNull(),
+  token: text("token").notNull(),
   userId: integer("user_id")
     .notNull()
     .unique()
     .references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });

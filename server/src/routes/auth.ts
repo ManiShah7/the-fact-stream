@@ -1,14 +1,21 @@
 import { Hono } from "hono";
 import { db } from "@server/lib/db";
 import { eq } from "drizzle-orm";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
-import type { User } from "@supabase/supabase-js";
+import { getCookie, deleteCookie, setCookie } from "hono/cookie";
 import type { SignInBody } from "@server/types/context";
-import { userSessions } from "@server/lib/db/schema/userSessions";
 import { authMiddleware } from "@server/middleware/authMiddleware";
-import type { SupabaseSignInResponse } from "@shared/types/user";
 import { users } from "@server/lib/db/schema/users";
-import { hashPassword, verifyPassword } from "@server/helpers/password";
+import { hashPassword, verifyPassword } from "@server/helpers/passwordHelpers";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "@server/helpers/jwtHelpers";
+import {
+  accessTokenCookieOptions,
+  refreshTokenCookieOptions,
+} from "@server/helpers/cookieHelpers";
+import { refreshTokens } from "@server/lib/db/schema/refreshTokens";
+import { success } from "@server/helpers/apiHelper";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c) => {
@@ -21,59 +28,39 @@ export const authRoutes = new Hono()
       .limit(1)
       .then((res) => res[0]);
 
-    if (!user || !(await verifyPassword(password, user.password))) {
-      return c.json({ error: "Invalid email or password" }, 401);
+    if (!user) {
+      return c.json({ error: "Invalid credentials" }, 401);
     }
 
-    const existingSession = await db
-      .select()
-      .from(userSessions)
-      .where(eq(userSessions.userId, user.id))
-      .limit(1)
-      .then((res) => res[0]);
+    const passwordMatch = await verifyPassword(password, user.password);
 
-    let session: typeof existingSession;
+    if (!passwordMatch) {
+      return c.json({ error: "Invalid credentials" }, 401);
+    }
 
-    // if (existingSession) {
-    //   session = await db
-    //     .update(userSessions)
-    //     .set({ refreshToken: data.refresh_token })
-    //     .where(eq(userSessions.id, existingSession.id))
-    //     .returning()
-    //     .then((res) => res[0]);
-    // } else {
-    //   session = await db
-    //     .insert(userSessions)
-    //     .values({
-    //       refreshToken: data.refresh_token,
-    //       userId: data.user.id,
-    //     })
-    //     .returning()
-    //     .then((res) => res[0]);
-    // }
+    const accessToken = await generateAccessToken(user);
+    const refreshToken = generateRefreshToken();
 
-    // setCookie(c, "access_token", data.access_token, {
-    //   httpOnly: true,
-    //   path: "/",
-    //   maxAge: 3600,
-    //   sameSite: "Lax",
-    //   secure: true,
-    // });
+    setCookie(c, "accessToken", accessToken, accessTokenCookieOptions);
+    setCookie(c, "refreshToken", refreshToken, refreshTokenCookieOptions);
 
-    // setCookie(c, "session_id", session!.id, {
-    //   httpOnly: true,
-    //   path: "/",
-    //   maxAge: 86400 * 7,
-    //   sameSite: "Lax",
-    //   secure: true,
-    // });
+    await db.insert(refreshTokens).values({
+      userId: user.id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+    });
 
-    // return c.json({
-    //   user: {
-    //     id: data.user.id,
-    //     email: data.user.email,
-    //   },
-    // });
+    return c.json(
+      success(
+        {
+          user: {
+            id: user.id,
+            email: user.email,
+          },
+        },
+        "Successfully logged in!"
+      )
+    );
   })
   .post("/signup", async (c) => {
     const { firstName, lastName, email, password } = await c.req.json();
@@ -119,10 +106,10 @@ export const authRoutes = new Hono()
       console.warn("Supabase logout request failed:", error);
     }
 
-    await db
-      .delete(userSessions)
-      .where(eq(userSessions.id, sessionId))
-      .execute();
+    // await db
+    //   .delete(userSessions)
+    //   .where(eq(userSessions.id, sessionId))
+    //   .execute();
 
     deleteCookie(c, "access_token");
     deleteCookie(c, "session_id");

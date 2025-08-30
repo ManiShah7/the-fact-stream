@@ -45,7 +45,6 @@ const HomePage = () => {
             Your trusted source for verified news analysis and reliable
             journalism
           </p>
-          Settings
         </header>
 
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
