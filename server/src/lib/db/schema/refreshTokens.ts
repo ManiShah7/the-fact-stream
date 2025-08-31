@@ -9,5 +9,9 @@ export const refreshTokens = pgTable("refresh_tokens", {
     .unique()
     .references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });

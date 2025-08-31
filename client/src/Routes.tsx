@@ -18,6 +18,8 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const Routes = () => {
   const auth = useAuth();
 
+  console.log(auth);
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <RRRoutes>

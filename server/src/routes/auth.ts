@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "@server/lib/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getCookie, deleteCookie, setCookie } from "hono/cookie";
 import type { SignInBody } from "@server/types/context";
 import { authMiddleware } from "@server/middleware/authMiddleware";
@@ -9,13 +9,14 @@ import { hashPassword, verifyPassword } from "@server/helpers/passwordHelpers";
 import {
   generateAccessToken,
   generateRefreshToken,
+  validateToken,
 } from "@server/helpers/jwtHelpers";
 import {
   accessTokenCookieOptions,
   refreshTokenCookieOptions,
 } from "@server/helpers/cookieHelpers";
 import { refreshTokens } from "@server/lib/db/schema/refreshTokens";
-import { success } from "@server/helpers/apiHelper";
+import { failure, success } from "@server/helpers/apiHelper";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c) => {
@@ -38,7 +39,7 @@ export const authRoutes = new Hono()
       return c.json({ error: "Invalid credentials" }, 401);
     }
 
-    const accessToken = await generateAccessToken(user);
+    const accessToken = await generateAccessToken(user.id);
     const refreshToken = generateRefreshToken();
 
     setCookie(c, "accessToken", accessToken, accessTokenCookieOptions);
@@ -82,39 +83,26 @@ export const authRoutes = new Hono()
     });
   })
   .post("/signout", authMiddleware, async (c) => {
-    const accessToken = getCookie(c, "access_token");
-    const sessionId = getCookie(c, "session_id");
+    const refreshToken = getCookie(c, "refreshToken");
+    const user = c.get("user");
 
-    if (!sessionId) {
-      return c.json({ error: "No active session" }, 400);
+    if (!refreshToken || !user) {
+      return c.json(failure("Unauthorized!"));
     }
 
-    try {
-      const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: process.env.SUPABASE_ANON_KEY!,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+    await db
+      .delete(refreshTokens)
+      .where(
+        and(
+          eq(refreshTokens.token, refreshToken),
+          eq(refreshTokens.userId, user.id)
+        )
+      );
 
-      if (!res.ok) {
-        console.warn("Supabase logout failed, continuing with local cleanup");
-      }
-    } catch (error) {
-      console.warn("Supabase logout request failed:", error);
-    }
+    deleteCookie(c, "accessToken");
+    deleteCookie(c, "refreshToken");
 
-    // await db
-    //   .delete(userSessions)
-    //   .where(eq(userSessions.id, sessionId))
-    //   .execute();
-
-    deleteCookie(c, "access_token");
-    deleteCookie(c, "session_id");
-
-    return c.json({ success: true });
+    return c.json(success(null));
   })
   .post("/resetPassword", async (c) => {
     const { email } = await c.req.json();
@@ -147,14 +135,71 @@ export const authRoutes = new Hono()
 
     return c.json({ message: "Password reset email sent" });
   })
-  .get("/me", authMiddleware, async (c) => {
-    const user = c.get("user");
+  .get("/refresh", async (c) => {
+    const refreshToken = getCookie(c, "refreshToken");
 
-    if (!user) {
-      return c.json({ error: "Unauthorized" }, 401);
+    if (!refreshToken) {
+      return c.json(failure("Unauthorized!"));
     }
 
-    return c.json(user);
+    const [dbRefreshTokenRow] = await db
+      .select()
+      .from(refreshTokens)
+      .where(eq(refreshTokens.token, refreshToken))
+      .limit(1);
+
+    if (!dbRefreshTokenRow) {
+      return c.json(failure("Unauthorized!"));
+    }
+
+    if (dbRefreshTokenRow?.expiresAt < new Date()) {
+      return c.json(failure("Unauthorized!"));
+    }
+
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, dbRefreshTokenRow.userId))
+      .limit(1)
+      .then((res) => res[0]);
+
+    if (!user) {
+      return c.json(failure("Unauthorized!"));
+    }
+
+    try {
+      const newAccessToken = await generateAccessToken(user.id);
+      const newRefreshToken = generateRefreshToken();
+
+      setCookie(c, "accessToken", newAccessToken, accessTokenCookieOptions);
+      setCookie(c, "refreshToken", newRefreshToken, refreshTokenCookieOptions);
+
+      await db
+        .update(refreshTokens)
+        .set({
+          userId: dbRefreshTokenRow.userId,
+          token: newRefreshToken,
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+        })
+        .where(
+          and(
+            eq(refreshTokens.id, dbRefreshTokenRow.id),
+            eq(refreshTokens.userId, dbRefreshTokenRow.userId)
+          )
+        );
+
+      return c.json(
+        success({
+          user: {
+            id: user.id,
+            email: user.email,
+          },
+        })
+      );
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      return c.json(failure("Unauthorized!"));
+    }
   });
 
 export type AuthRoutes = typeof authRoutes;

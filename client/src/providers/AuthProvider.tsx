@@ -1,20 +1,18 @@
-import { useMemo } from "react";
-import { useUserQuery } from "@/queries/authQueries";
-import { AuthContext, AuthContextType } from "@/context/AuthContext";
+import { useState } from "react";
+import { AuthContext } from "@/context/AuthContext";
+import type { AuthState } from "@/types/authState";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { data, isLoading, error } = useUserQuery();
-
-  const contextValue = useMemo(
-    (): AuthContextType => ({
-      user: data || null,
-      loading: isLoading,
-      error,
-    }),
-    [data, isLoading, error]
-  );
+  const [authState, setAuthState] = useState<AuthState | null>(null);
 
   return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        authState,
+        setAuthState,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };

@@ -1,13 +1,12 @@
 import type { AuthTokenPayload } from "@server/types/auth";
 import { randomBytes } from "crypto";
 import { sign, verify } from "hono/jwt";
-import type { User } from "shared/src/types/user";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-const generateAccessToken = async (user: User) => {
+const generateAccessToken = async (userId: number) => {
   const payload = {
-    sub: user.id,
+    sub: userId,
     exp: Math.floor(Date.now() / 1000) + 60 * 15, // 15 min
   };
 

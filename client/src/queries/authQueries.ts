@@ -1,7 +1,8 @@
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client } from "./client";
+import { useAuth } from "@/hooks/useAuth";
 
 type LoginRequest = {
   email: string;
@@ -54,25 +55,6 @@ export const useSignUpMutation = () => {
   });
 };
 
-const getCurrentUser = async () => {
-  const res = await client.api.v1.auth.me.$get();
-
-  if (res.status === 401 || !res.ok) {
-    return null;
-  }
-
-  return res.json();
-};
-
-export const useUserQuery = () => {
-  return useQuery({
-    queryKey: ["user"],
-    queryFn: getCurrentUser,
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
 const loginUser = async (credentials: LoginRequest) => {
   const res = await client.api.v1.auth.signin.$post({
     json: credentials,
@@ -88,28 +70,34 @@ const loginUser = async (credentials: LoginRequest) => {
 export const useLoginMutation = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const auth = useAuth();
 
   return useMutation({
     mutationFn: loginUser,
-    onMutate: () => toast.loading("Signing in..."),
-    onSuccess: (_data, _variables, toastId) => {
-      toast.update(toastId, {
-        render: "Login successful. Redirecting...",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
-
+    onMutate: () => {
+      toast.loading("Signing in...");
+      auth?.setAuthState((prev) => ({ ...prev, isLoading: true }));
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/new");
+
+      auth?.setAuthState((prev) => ({ ...prev, user: data }));
     },
     onError: (error, _variables, toastId) => {
-      toast.update(toastId as string, {
-        render: error instanceof Error ? error.message : "Login failed",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId as string, {
+      //   render: error instanceof Error ? error.message : "Login failed",
+      //   type: "error",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
+
+      auth?.setAuthState((prev) => ({ ...prev, error }));
+
+      return error;
+    },
+    onSettled: () => {
+      auth?.setAuthState((prev) => ({ ...prev, isLoading: false }));
     },
   });
 };

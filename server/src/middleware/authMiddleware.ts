@@ -27,6 +27,7 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     c.set("user", user);
     await next();
   } catch (error) {
+    console.error("Refresh token error:", error);
     return c.json(failure("Unauthorized!"));
   }
 });

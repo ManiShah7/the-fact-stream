@@ -1,10 +1,9 @@
+import type { AuthState } from "@/types/authState";
 import { createContext } from "react";
-import { SupabaseUser } from "shared/src/types/user";
 
 export type AuthContextType = {
-  user: SupabaseUser | null;
-  error: Error | null;
-  loading: boolean;
+  authState: AuthState | null;
+  setAuthState: React.Dispatch<React.SetStateAction<AuthState | null>>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
