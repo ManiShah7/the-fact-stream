@@ -232,7 +232,7 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   logo?: React.ReactNode;
   logoHref?: string;
   navigationLinks: Navbar05NavItem[];
-  userName?: string;
+  userName?: string | null;
   userEmail?: string;
   userAvatar?: string;
   notificationCount?: number;

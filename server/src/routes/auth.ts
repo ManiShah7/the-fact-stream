@@ -51,17 +51,12 @@ export const authRoutes = new Hono()
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
     });
 
-    return c.json(
-      success(
-        {
-          user: {
-            id: user.id,
-            email: user.email,
-          },
-        },
-        "Successfully logged in!"
-      )
-    );
+    return c.json({
+      data: {
+        user,
+      },
+      message: "Successfully logged in!",
+    });
   })
   .post("/signup", async (c) => {
     const { firstName, lastName, email, password } = await c.req.json();
@@ -139,7 +134,7 @@ export const authRoutes = new Hono()
     const refreshToken = getCookie(c, "refreshToken");
 
     if (!refreshToken) {
-      return c.json(failure("Unauthorized!"));
+      return c.json({ data: null, message: "Unauthorized!" }, 401);
     }
 
     const [dbRefreshTokenRow] = await db
@@ -149,11 +144,14 @@ export const authRoutes = new Hono()
       .limit(1);
 
     if (!dbRefreshTokenRow) {
-      return c.json(failure("Unauthorized!"));
+      return c.json({ data: null, message: "Unauthorized!" }, 401);
     }
 
-    if (dbRefreshTokenRow?.expiresAt < new Date()) {
-      return c.json(failure("Unauthorized!"));
+    if (dbRefreshTokenRow.expiresAt < new Date()) {
+      await db
+        .delete(refreshTokens)
+        .where(eq(refreshTokens.id, dbRefreshTokenRow.id));
+      return c.json({ data: null, message: "Unauthorized!" }, 401);
     }
 
     const user = await db
@@ -164,7 +162,10 @@ export const authRoutes = new Hono()
       .then((res) => res[0]);
 
     if (!user) {
-      return c.json(failure("Unauthorized!"));
+      await db
+        .delete(refreshTokens)
+        .where(eq(refreshTokens.id, dbRefreshTokenRow.id));
+      return c.json({ data: null, message: "Unauthorized!" }, 401);
     }
 
     try {
@@ -175,30 +176,27 @@ export const authRoutes = new Hono()
       setCookie(c, "refreshToken", newRefreshToken, refreshTokenCookieOptions);
 
       await db
-        .update(refreshTokens)
-        .set({
-          userId: dbRefreshTokenRow.userId,
+        .insert(refreshTokens)
+        .values({
+          userId: user.id,
           token: newRefreshToken,
-          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         })
-        .where(
-          and(
-            eq(refreshTokens.id, dbRefreshTokenRow.id),
-            eq(refreshTokens.userId, dbRefreshTokenRow.userId)
-          )
-        );
-
-      return c.json(
-        success({
-          user: {
-            id: user.id,
-            email: user.email,
+        .onConflictDoUpdate({
+          target: refreshTokens.userId,
+          set: {
+            token: newRefreshToken,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
           },
-        })
-      );
+        });
+
+      return c.json({ data: user, message: "Token refreshed successfully!" });
     } catch (error) {
       console.error("Refresh token error:", error);
-      return c.json(failure("Unauthorized!"));
+      await db
+        .delete(refreshTokens)
+        .where(eq(refreshTokens.userId, user.id));
+      return c.json({ data: null, message: "Unauthorized!" }, 401);
     }
   });
 

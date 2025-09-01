@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { client } from "./client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { client } from "@/queries/client";
 import { useAuth } from "@/hooks/useAuth";
 
 type LoginRequest = {
@@ -34,23 +34,23 @@ export const useSignUpMutation = () => {
     mutationFn: signUpUser,
     onMutate: () => toast.loading("Signing up..."),
     onSuccess: (_data, _variables, toastId) => {
-      toast.update(toastId, {
-        render: "Sign up successful. Redirecting...",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId, {
+      //   render: "Sign up successful. Redirecting...",
+      //   type: "success",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
 
       queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/new");
     },
     onError: (error, _variables, toastId) => {
-      toast.update(toastId as string, {
-        render: error instanceof Error ? error.message : "Sign up failed",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId as string, {
+      //   render: error instanceof Error ? error.message : "Sign up failed",
+      //   type: "error",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
     },
   });
 };
@@ -76,22 +76,21 @@ export const useLoginMutation = () => {
     mutationFn: loginUser,
     onMutate: () => {
       toast.loading("Signing in...");
-      auth?.setAuthState((prev) => ({ ...prev, isLoading: true }));
+      auth?.setAuthState(() => ({ error: null, isLoading: true, user: null }));
     },
     onSuccess: (data) => {
+      const user = {
+        ...data.data.user,
+        createdAt: new Date(data.data.user.createdAt),
+        updatedAt: data.data.user.updatedAt
+          ? new Date(data.data.user.updatedAt)
+          : null,
+      };
+      auth.setAuthState((prev) => ({ ...prev, user }));
       queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/new");
-
-      auth?.setAuthState((prev) => ({ ...prev, user: data }));
     },
     onError: (error, _variables, toastId) => {
-      // toast.update(toastId as string, {
-      //   render: error instanceof Error ? error.message : "Login failed",
-      //   type: "error",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
-
       auth?.setAuthState((prev) => ({ ...prev, error }));
 
       return error;
@@ -116,23 +115,23 @@ export const useLogoutMutation = () => {
     mutationFn: logoutUser,
     onMutate: () => toast.loading("Signing out..."),
     onSuccess: (_data, _variables, toastId) => {
-      toast.update(toastId, {
-        render: "Logged out successfully",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId, {
+      //   render: "Logged out successfully",
+      //   type: "success",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
 
       queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/login");
     },
     onError: (error, _variables, toastId) => {
-      toast.update(toastId as string, {
-        render: error instanceof Error ? error.message : "Logout failed",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId as string, {
+      //   render: error instanceof Error ? error.message : "Logout failed",
+      //   type: "error",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
     },
   });
 };
@@ -149,20 +148,38 @@ export const useResetPasswordMutation = () => {
     mutationFn: resetPassword,
     onMutate: () => toast.loading("Sending reset password email..."),
     onSuccess: (_data, _variables, toastId) => {
-      toast.update(toastId, {
-        render: "Reset password email sent successfully",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId, {
+      //   render: "Reset password email sent successfully",
+      //   type: "success",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
     },
     onError: (error, _variables, toastId) => {
-      toast.update(toastId as string, {
-        render: error instanceof Error ? error.message : "Failed to send email",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId as string, {
+      //   render: error instanceof Error ? error.message : "Failed to send email",
+      //   type: "error",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
     },
+  });
+};
+
+const refreshToken = async () => {
+  const res = await client.api.v1.auth.refresh.$get();
+  if (!res.ok) throw new Error("Failed to refresh token");
+  return res.json();
+};
+
+export const useRefreshTokenQuery = () => {
+  return useQuery({
+    queryKey: ["refreshToken"],
+    queryFn: refreshToken,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 };

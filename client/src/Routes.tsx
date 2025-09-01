@@ -18,14 +18,12 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const Routes = () => {
   const auth = useAuth();
 
-  console.log(auth);
-
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <RRRoutes>
         <Route path="/" element={<NavWrapper />}>
           <Route path="/" element={<HomePage />} />
-          {auth?.user ? (
+          {auth?.authState.user ? (
             <>
               <Route path="/login" element={<Navigate to="/new" replace />} />
               <Route path="/new" element={<NewChatPage />} />

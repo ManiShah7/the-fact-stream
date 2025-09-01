@@ -31,7 +31,12 @@ const NavWrapper = () => {
   return (
     <>
       <Navbar05
-        userEmail={auth?.user?.email}
+        userEmail={auth?.authState.user?.email}
+        userName={
+          auth?.authState.user
+            ? `${auth.authState.user.firstName} ${auth.authState.user.lastName}`
+            : null
+        }
         navigationLinks={items}
         logoHref="/"
         onNavItemClick={(href) => {

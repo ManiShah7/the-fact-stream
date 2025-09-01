@@ -3,13 +3,15 @@ const baseCookieOptions = {
   secure: process.env.NODE_ENV === "production",
   sameSite: "Strict",
   path: "/",
-};
+} as const;
 
-const accessTokenCookieOptions = baseCookieOptions && {
+const accessTokenCookieOptions = {
+  ...baseCookieOptions,
   maxAge: 60 * 15,
 };
 
-const refreshTokenCookieOptions = baseCookieOptions && {
+const refreshTokenCookieOptions = {
+  ...baseCookieOptions,
   maxAge: 60 * 60 * 24 * 7,
 };
 
