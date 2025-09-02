@@ -32,7 +32,7 @@ export const useSignUpMutation = () => {
 
   return useMutation({
     mutationFn: signUpUser,
-    onMutate: () => toast.loading("Signing up..."),
+    // onMutate: () => toast.loading("Signing up..."),
     onSuccess: (_data, _variables, toastId) => {
       // toast.update(toastId, {
       //   render: "Sign up successful. Redirecting...",
@@ -75,7 +75,7 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: loginUser,
     onMutate: () => {
-      toast.loading("Signing in...");
+      // toast.loading("Signing in...");
       auth?.setAuthState(() => ({ error: null, isLoading: true, user: null }));
     },
     onSuccess: (data) => {
@@ -113,7 +113,7 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: logoutUser,
-    onMutate: () => toast.loading("Signing out..."),
+    // onMutate: () => toast.loading("Signing out..."),
     onSuccess: (_data, _variables, toastId) => {
       // toast.update(toastId, {
       //   render: "Logged out successfully",
@@ -122,7 +122,7 @@ export const useLogoutMutation = () => {
       //   autoClose: 3000,
       // });
 
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["refreshToken"] });
       navigate("/login");
     },
     onError: (error, _variables, toastId) => {

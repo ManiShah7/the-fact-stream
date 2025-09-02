@@ -82,7 +82,7 @@ export const authRoutes = new Hono()
     const user = c.get("user");
 
     if (!refreshToken || !user) {
-      return c.json(failure("Unauthorized!"));
+      return c.json({ data: null, message: "Unauthorized!" });
     }
 
     await db
@@ -97,7 +97,7 @@ export const authRoutes = new Hono()
     deleteCookie(c, "accessToken");
     deleteCookie(c, "refreshToken");
 
-    return c.json(success(null));
+    return c.json({ data: null });
   })
   .post("/resetPassword", async (c) => {
     const { email } = await c.req.json();
@@ -193,9 +193,7 @@ export const authRoutes = new Hono()
       return c.json({ data: user, message: "Token refreshed successfully!" });
     } catch (error) {
       console.error("Refresh token error:", error);
-      await db
-        .delete(refreshTokens)
-        .where(eq(refreshTokens.userId, user.id));
+      await db.delete(refreshTokens).where(eq(refreshTokens.userId, user.id));
       return c.json({ data: null, message: "Unauthorized!" }, 401);
     }
   });

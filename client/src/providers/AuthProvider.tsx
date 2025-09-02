@@ -9,20 +9,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     error: null,
     isLoading: true,
   });
-  const { data: userData, isPending } = useRefreshTokenQuery();
+  const { data: userData, isPending, error } = useRefreshTokenQuery();
 
   useEffect(() => {
     if (userData) {
       const user = {
         ...userData.data,
         createdAt: new Date(userData.data.createdAt),
-        updatedAt: userData.data.updatedAt ? new Date(userData.data.updatedAt) : null,
+        updatedAt: userData.data.updatedAt
+          ? new Date(userData.data.updatedAt)
+          : null,
       };
       setAuthState((prev) => ({ ...prev, user }));
-    } else if (!isPending) {
-      setAuthState((prev) => ({ ...prev, isLoading: false }));
+    } else if (error) {
+      setAuthState((prev) => ({ ...prev, user: null, error }));
     }
-  }, [userData, isPending]);
+  }, [userData, error]);
 
   useEffect(() => {
     setAuthState((prev) => ({ ...prev, isLoading: isPending }));
