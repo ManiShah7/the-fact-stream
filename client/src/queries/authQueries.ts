@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { client } from "@/queries/client";
@@ -32,25 +32,22 @@ export const useSignUpMutation = () => {
 
   return useMutation({
     mutationFn: signUpUser,
-    // onMutate: () => toast.loading("Signing up..."),
-    onSuccess: (_data, _variables, toastId) => {
-      // toast.update(toastId, {
-      //   render: "Sign up successful. Redirecting...",
-      //   type: "success",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
-
+    onMutate: () => {
+      const toastId = crypto.randomUUID();
+      toast.loading("Signing up...", { id: toastId });
+      return { toastId };
+    },
+    onSuccess: (_data, _variables, context) => {
+      toast.success("Sign up successful!", {
+        id: context?.toastId,
+      });
       queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/new");
     },
-    onError: (error, _variables, toastId) => {
-      // toast.update(toastId as string, {
-      //   render: error instanceof Error ? error.message : "Sign up failed",
-      //   type: "error",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
+    onError: (error, _variables, context) => {
+      toast.error(error instanceof Error ? error.message : "Sign up failed", {
+        id: context?.toastId,
+      });
     },
   });
 };
@@ -75,10 +72,15 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: loginUser,
     onMutate: () => {
-      // toast.loading("Signing in...");
-      auth?.setAuthState(() => ({ error: null, isLoading: true, user: null }));
+      const toastId = crypto.randomUUID();
+      toast.loading("Signing in...", { id: toastId });
+      auth.setAuthState(() => ({ error: null, isLoading: true, user: null }));
+      return { toastId };
     },
-    onSuccess: (data) => {
+    onSuccess: (data, _variables, context) => {
+      toast.success("Login successful!", {
+        id: context?.toastId,
+      });
       const user = {
         ...data.data.user,
         createdAt: new Date(data.data.user.createdAt),
@@ -90,8 +92,11 @@ export const useLoginMutation = () => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       navigate("/new");
     },
-    onError: (error, _variables, toastId) => {
-      auth?.setAuthState((prev) => ({ ...prev, error }));
+    onError: (error, _variables, context) => {
+      toast.error(error instanceof Error ? error.message : "Login failed", {
+        id: context?.toastId,
+      });
+      auth.setAuthState((prev) => ({ ...prev, error }));
 
       return error;
     },
@@ -113,25 +118,20 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: logoutUser,
-    // onMutate: () => toast.loading("Signing out..."),
-    onSuccess: (_data, _variables, toastId) => {
-      // toast.update(toastId, {
-      //   render: "Logged out successfully",
-      //   type: "success",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
-
+    onMutate: () => {
+      const toastId = crypto.randomUUID();
+      toast.loading("Signing out...", { id: toastId });
+      return { toastId };
+    },
+    onSuccess: (_data, _variables, context) => {
+      toast.success("Logged out successfully", { id: context?.toastId });
       queryClient.invalidateQueries({ queryKey: ["refreshToken"] });
       navigate("/login");
     },
-    onError: (error, _variables, toastId) => {
-      // toast.update(toastId as string, {
-      //   render: error instanceof Error ? error.message : "Logout failed",
-      //   type: "error",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
+    onError: (error, _variables, context) => {
+      toast.error(error instanceof Error ? error.message : "Logout failed", {
+        id: context?.toastId,
+      });
     },
   });
 };
@@ -146,22 +146,23 @@ const resetPassword = async (email: string) => {
 export const useResetPasswordMutation = () => {
   return useMutation({
     mutationFn: resetPassword,
-    onMutate: () => toast.loading("Sending reset password email..."),
-    onSuccess: (_data, _variables, toastId) => {
-      // toast.update(toastId, {
-      //   render: "Reset password email sent successfully",
-      //   type: "success",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
+    onMutate: () => {
+      const toastId = crypto.randomUUID();
+      toast.loading("Sending reset password email...", { id: toastId });
+      return { toastId };
     },
-    onError: (error, _variables, toastId) => {
-      // toast.update(toastId as string, {
-      //   render: error instanceof Error ? error.message : "Failed to send email",
-      //   type: "error",
-      //   isLoading: false,
-      //   autoClose: 3000,
-      // });
+    onSuccess: (_data, _variables, context) => {
+      toast.success("Reset password email sent!", { id: context?.toastId });
+    },
+    onError: (error, _variables, context) => {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to send reset password email",
+        {
+          id: context?.toastId,
+        }
+      );
     },
   });
 };

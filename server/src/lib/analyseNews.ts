@@ -66,13 +66,12 @@ ${articleText}
 
     text = response.text;
   } else {
-    console.log("Responding from gemma");
     const response = await fetch("http://127.0.0.1:11434/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt, model: "gemma3:270m", stream: false }),
+      body: JSON.stringify({ prompt, model: "gemma3:4b", stream: false }),
     });
 
     if (!response.ok) {

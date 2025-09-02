@@ -21,9 +21,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           : null,
       };
       setAuthState((prev) => ({ ...prev, user }));
-    } else if (error) {
+    }
+
+    if (error) {
       setAuthState((prev) => ({ ...prev, user: null, error }));
     }
+
+    console.log(error);
   }, [userData, error]);
 
   useEffect(() => {

@@ -32,7 +32,7 @@ const HomePage = () => {
   });
 
   return (
-    <div className="min-h-screen">
+    <div className="h-svh">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <header className="text-center mb-16">
           <div className="flex justify-center mb-6">
@@ -118,12 +118,14 @@ const HomePage = () => {
                 </Badge>
               </div>
 
-              <Link to={auth?.user ? "/new" : "/login"}>
+              <Link to={auth?.authState.user ? "/new" : "/login"}>
                 <Button
                   variant="outline"
                   className="w-full group-hover:bg-accent transition-colors"
                 >
-                  {auth?.user ? "Start Analysis" : "Login to Analyze News"}
+                  {auth?.authState.user
+                    ? "Start Analysis"
+                    : "Login to Analyze News"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>

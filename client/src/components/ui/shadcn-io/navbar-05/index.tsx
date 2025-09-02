@@ -4,12 +4,12 @@ import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import {
   BellIcon,
-  HelpCircleIcon,
   ChevronDownIcon,
   Globe,
   Settings,
   LogOut,
   type LucideProps,
+  CirclePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,36 +69,27 @@ const HamburgerIcon = ({
   </svg>
 );
 
-const InfoMenu = ({
-  onItemClick,
-}: {
-  onItemClick?: (item: string) => void;
-}) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="icon" className="h-9 w-9">
-        <HelpCircleIcon className="h-4 w-4" />
-        <span className="sr-only">Help and Information</span>
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-56">
-      <DropdownMenuLabel>Help & Support</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => onItemClick?.("help")}>
-        Help Center
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.("documentation")}>
-        Documentation
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.("contact")}>
-        Contact Support
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.("feedback")}>
-        Send Feedback
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+type AddNewsMenuProps = {
+  onAddNewsItemClick?: (item: string) => void;
+};
+
+const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-9 px-2 py-0 hover:bg-accent hover:text-accent-foreground"
+        >
+          <CirclePlus />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onClick={() => {}}>New Analysis</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 // Notification Menu Component
 const NotificationMenu = ({
@@ -237,7 +228,7 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   userAvatar?: string;
   notificationCount?: number;
   onNavItemClick?: (href: string) => void;
-  onInfoItemClick?: (item: string) => void;
+  onAddChatItemClick?: (item: string) => void;
   onNotificationItemClick?: (item: string) => void;
   onUserItemClick?: (item: string) => void;
 }
@@ -254,9 +245,9 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
       userAvatar,
       notificationCount = 3,
       onNavItemClick,
-      onInfoItemClick,
       onNotificationItemClick,
       onUserItemClick,
+      onAddChatItemClick,
       ...props
     },
     ref
@@ -384,15 +375,13 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
           </div>
 
           {userName ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <InfoMenu onItemClick={onInfoItemClick} />
+            <div className="flex items-center gap-3">
+              <NotificationMenu
+                notificationCount={notificationCount}
+                onItemClick={onNotificationItemClick}
+              />
 
-                <NotificationMenu
-                  notificationCount={notificationCount}
-                  onItemClick={onNotificationItemClick}
-                />
-              </div>
+              <AddNewsMenu onAddChatItemClick={onAddChatItemClick} />
 
               <UserMenu
                 userName={userName}
@@ -429,4 +418,4 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
 
 Navbar05.displayName = "Navbar05";
 
-export { HamburgerIcon, InfoMenu, NotificationMenu, UserMenu };
+export { HamburgerIcon, NotificationMenu, UserMenu, AddNewsMenu };
