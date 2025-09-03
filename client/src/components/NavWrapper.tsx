@@ -4,18 +4,13 @@ import {
   type Navbar05NavItem,
 } from "@/components/ui/shadcn-io/navbar-05";
 import { useAuth } from "@/hooks/useAuth";
-import { CirclePlus, MessagesSquare, Rss } from "lucide-react";
+import { MessagesSquare, Rss } from "lucide-react";
 
 const NavWrapper = () => {
   const auth = useAuth();
   const navigate = useNavigate();
 
   const items: Navbar05NavItem[] = [
-    {
-      label: "New Analysis",
-      href: "/new",
-      icon: CirclePlus,
-    },
     {
       label: "My Analyses",
       href: "/analyses",

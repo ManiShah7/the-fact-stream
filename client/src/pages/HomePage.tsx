@@ -34,104 +34,85 @@ const HomePage = () => {
   return (
     <div className="h-svh">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <header className="text-center mb-16">
+        <header className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <Logo />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent mb-4">
             The Fact Stream
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Your trusted source for verified news analysis and reliable
             journalism
           </p>
         </header>
 
-        <div className="grid lg:grid-cols-2 gap-8 mb-16">
+        <div className="max-w-3xl mx-auto text-center mb-16">
           <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 group">
             <CardContent className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-full flex items-center justify-center">
-                  <Newspaper className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold">Published News</h2>
-                  <p className="text-muted-foreground">
-                    Verified & Analyzed Articles
-                  </p>
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+                  <Shield className="w-8 h-8 text-primary" />
                 </div>
               </div>
 
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                Discover news articles that have been thoroughly analyzed and
-                verified by our community. Each article includes reliability
-                scores, fact-checking, and source credibility assessment.
+              <h2 className="text-3xl font-bold mb-4">
+                AI-Powered News Analysis
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                Get comprehensive analysis of news articles with source
+                credibility assessment, fact-checking verification, and
+                reliability scores powered by advanced AI.
               </p>
 
-              <Link to="/published-news">
-                <Button className="w-full group-hover:bg-primary/90 transition-colors">
-                  Browse Published News
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-
-              <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Newspaper className="w-16 h-16" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 group">
-            <CardContent className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold">Analyze News</h2>
-                  <p className="text-muted-foreground">
-                    Check Article Reliability
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                Paste any news article URL to get comprehensive analysis
-                including source credibility, fact-checking records, editorial
-                standards, and reliability scores.
-              </p>
-
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex justify-center items-center gap-4 mb-8">
                 <Badge
                   variant="outline"
-                  className="bg-blue-50 text-blue-700 border-blue-200"
+                  className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1"
                 >
-                  <Shield className="w-3 h-3 mr-1" />
-                  AI-Powered
+                  <Shield className="w-4 h-4 mr-2" />
+                  AI-Powered Analysis
                 </Badge>
                 <Badge
                   variant="outline"
-                  className="bg-purple-50 text-purple-700 border-purple-200"
+                  className="bg-purple-50 text-purple-700 border-purple-200 px-3 py-1"
                 >
-                  <Users className="w-3 h-3 mr-1" />
-                  Community Driven
+                  <Users className="w-4 h-4 mr-2" />
+                  Community Verified
                 </Badge>
               </div>
 
-              <Link to={auth?.authState.user ? "/new" : "/login"}>
-                <Button
-                  variant="outline"
-                  className="w-full group-hover:bg-accent transition-colors"
-                >
-                  {auth?.authState.user
-                    ? "Start Analysis"
-                    : "Login to Analyze News"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+              {auth?.authState.user ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Use the <span className="font-medium">+ button</span> in the
+                    navigation bar above to add news links for analysis
+                  </p>
+                  <Link to="/published-news">
+                    <Button variant="outline" className="group">
+                      Browse Published Analysis
+                      <Newspaper className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex gap-4 justify-center">
+                    <Link to="/login">
+                      <Button variant="outline">Login</Button>
+                    </Link>
+                    <Link to="/signup">
+                      <Button>
+                        Get Started
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
 
-              <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Shield className="w-16 h-16" />
+              <div className="absolute top-4 right-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Shield className="w-20 h-20" />
               </div>
             </CardContent>
           </Card>

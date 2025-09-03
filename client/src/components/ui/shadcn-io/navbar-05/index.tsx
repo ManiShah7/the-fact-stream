@@ -10,6 +10,9 @@ import {
   LogOut,
   type LucideProps,
   CirclePlus,
+  Send,
+  X,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import { useLogoutMutation } from "@/queries/authQueries";
@@ -70,12 +74,43 @@ const HamburgerIcon = ({
 );
 
 type AddNewsMenuProps = {
-  onAddNewsItemClick?: (item: string) => void;
+  onAddNewsItemClick?: (urls: string[]) => void;
 };
 
 const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [urls, setUrls] = useState<string[]>(['']);
+
+  const handleSubmit = () => {
+    const validUrls = urls.filter(url => url.trim() !== '');
+    if (validUrls.length > 0 && onAddNewsItemClick) {
+      onAddNewsItemClick(validUrls);
+      setUrls(['']);
+      setIsOpen(false);
+    }
+  };
+
+  const handleUrlChange = (index: number, value: string) => {
+    const newUrls = [...urls];
+    newUrls[index] = value;
+    setUrls(newUrls);
+  };
+
+  const addUrlField = () => {
+    if (urls.length < 3) {
+      setUrls([...urls, '']);
+    }
+  };
+
+  const removeUrlField = (index: number) => {
+    if (urls.length > 1) {
+      const newUrls = urls.filter((_, i) => i !== index);
+      setUrls(newUrls);
+    }
+  };
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -84,8 +119,58 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
           <CirclePlus />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={() => {}}>New Analysis</DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-80 p-4">
+        <div className="space-y-4">
+          <div className="text-sm font-medium">Add News Links to Analyze</div>
+          <div className="text-xs text-muted-foreground">Add 1-3 news links for AI analysis</div>
+          
+          <div className="space-y-3">
+            {urls.map((url, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="flex-1 space-y-1">
+                  <Input
+                    placeholder="https://example.com/news-article"
+                    value={url}
+                    onChange={(e) => handleUrlChange(index, e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+                {urls.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => removeUrlField(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            
+            {urls.length < 3 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addUrlField}
+                className="w-full"
+              >
+                <Plus className="h-3 w-3 mr-2" />
+                Add Another Link
+              </Button>
+            )}
+          </div>
+
+          <Button 
+            onClick={handleSubmit} 
+            className="w-full" 
+            size="sm"
+            disabled={urls.every(url => url.trim() === '')}
+          >
+            <Send className="w-4 h-4 mr-2" />
+            Analyze Links
+          </Button>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -228,7 +313,7 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   userAvatar?: string;
   notificationCount?: number;
   onNavItemClick?: (href: string) => void;
-  onAddChatItemClick?: (item: string) => void;
+  onAddChatItemClick?: (urls: string[]) => void;
   onNotificationItemClick?: (item: string) => void;
   onUserItemClick?: (item: string) => void;
 }
@@ -381,7 +466,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                 onItemClick={onNotificationItemClick}
               />
 
-              <AddNewsMenu onAddChatItemClick={onAddChatItemClick} />
+              <AddNewsMenu onAddNewsItemClick={onAddChatItemClick} />
 
               <UserMenu
                 userName={userName}
