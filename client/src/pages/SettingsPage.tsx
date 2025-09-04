@@ -12,7 +12,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Settings as SettingsIcon,
-  Mail,
+  // Mail,
   Lock,
   Eye,
   EyeOff,
@@ -25,6 +25,8 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/providers/ThemeProvider";
+import PasswordRequirement from "@/components/ui/password-requirement";
+import { useChangePasswordMutation } from "@/queries/authQueries";
 
 type FormState = {
   isLoading: boolean;
@@ -34,14 +36,14 @@ type FormState = {
 
 const SettingsPage = () => {
   const { theme, setTheme } = useTheme();
-  const [currentEmail, setCurrentEmail] = useState("user@example.com");
-  const [newEmail, setNewEmail] = useState("");
-  const [emailPassword, setEmailPassword] = useState("");
-  const [emailFormState, setEmailFormState] = useState<FormState>({
-    isLoading: false,
-    success: "",
-    error: "",
-  });
+  // const [currentEmail, setCurrentEmail] = useState("user@example.com");
+  // const [newEmail, setNewEmail] = useState("");
+  // const [emailPassword, setEmailPassword] = useState("");
+  // const [emailFormState, setEmailFormState] = useState<FormState>({
+  //   isLoading: false,
+  //   success: "",
+  //   error: "",
+  // });
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -54,50 +56,59 @@ const SettingsPage = () => {
     success: "",
     error: "",
   });
+  const isPasswordLengthValid = newPassword.length >= 8;
+  const isPasswordDifferent = Boolean(
+    newPassword !== currentPassword && newPassword
+  );
+  const doPasswordsMatch = Boolean(
+    newPassword === confirmPassword && newPassword && confirmPassword
+  );
 
-  const handleEmailChange = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { mutate: changePassword } = useChangePasswordMutation();
 
-    if (!newEmail || !emailPassword) {
-      setEmailFormState({
-        isLoading: false,
-        success: "",
-        error: "All fields are required",
-      });
-      return;
-    }
+  // const handleEmailChange = async (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    if (newEmail === currentEmail) {
-      setEmailFormState({
-        isLoading: false,
-        success: "",
-        error: "New email must be different from current email",
-      });
-      return;
-    }
+  //   if (!newEmail || !emailPassword) {
+  //     setEmailFormState({
+  //       isLoading: false,
+  //       success: "",
+  //       error: "All fields are required",
+  //     });
+  //     return;
+  //   }
 
-    setEmailFormState({ isLoading: true, success: "", error: "" });
+  //   if (newEmail === currentEmail) {
+  //     setEmailFormState({
+  //       isLoading: false,
+  //       success: "",
+  //       error: "New email must be different from current email",
+  //     });
+  //     return;
+  //   }
 
-    try {
-      // Simulate success
-      setCurrentEmail(newEmail);
-      setNewEmail("");
-      setEmailPassword("");
-      setEmailFormState({
-        isLoading: false,
-        success:
-          "Email updated successfully! Please check your new email for verification.",
-        error: "",
-      });
-    } catch (error) {
-      console.error(error);
-      setEmailFormState({
-        isLoading: false,
-        success: "",
-        error: "Failed to update email. Please try again.",
-      });
-    }
-  };
+  //   setEmailFormState({ isLoading: true, success: "", error: "" });
+
+  //   try {
+  //     // Simulate success
+  //     setCurrentEmail(newEmail);
+  //     setNewEmail("");
+  //     setEmailPassword("");
+  //     setEmailFormState({
+  //       isLoading: false,
+  //       success:
+  //         "Email updated successfully! Please check your new email for verification.",
+  //       error: "",
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     setEmailFormState({
+  //       isLoading: false,
+  //       success: "",
+  //       error: "Failed to update email. Please try again.",
+  //     });
+  //   }
+  // };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,44 +149,12 @@ const SettingsPage = () => {
       return;
     }
 
-    setPasswordFormState({ isLoading: true, success: "", error: "" });
-
     try {
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordFormState({
-        isLoading: false,
-        success: "Password updated successfully!",
-        error: "",
-      });
+      changePassword({ currentPassword, newPassword });
     } catch (error) {
       console.error(error);
-      setPasswordFormState({
-        isLoading: false,
-        success: "",
-        error:
-          "Failed to update password. Please check your current password and try again.",
-      });
     }
   };
-
-  const clearAlert = (type: "email" | "password") => {
-    setTimeout(() => {
-      if (type === "email") {
-        setEmailFormState((prev) => ({ ...prev, success: "", error: "" }));
-      } else {
-        setPasswordFormState((prev) => ({ ...prev, success: "", error: "" }));
-      }
-    }, 5000);
-  };
-
-  if (emailFormState.success || emailFormState.error) {
-    clearAlert("email");
-  }
-  if (passwordFormState.success || passwordFormState.error) {
-    clearAlert("password");
-  }
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto">
@@ -231,7 +210,7 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
@@ -328,7 +307,7 @@ const SettingsPage = () => {
               </Button>
             </form>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardHeader>
@@ -337,7 +316,11 @@ const SettingsPage = () => {
               Change Password
             </CardTitle>
             <CardDescription>
-              Update your password. Make sure it's at least 8 characters long.
+              Update your password. Make sure it's at least 8 characters long.{" "}
+              <div>
+                <p className="text-red-600 inline font-bold">Note:</p> You will
+                need to log in again after changing your password.
+              </div>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -450,56 +433,18 @@ const SettingsPage = () => {
               <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
                 <p className="font-medium mb-1">Password requirements:</p>
                 <ul className="space-y-1 text-xs">
-                  <li
-                    className={`flex items-center gap-2 ${
-                      newPassword.length >= 8 ? "text-green-600" : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-1 h-1 rounded-full ${
-                        newPassword.length >= 8
-                          ? "bg-green-600"
-                          : "bg-muted-foreground"
-                      }`}
-                    />
-                    At least 8 characters long
-                  </li>
-                  <li
-                    className={`flex items-center gap-2 ${
-                      newPassword !== currentPassword && newPassword
-                        ? "text-green-600"
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-1 h-1 rounded-full ${
-                        newPassword !== currentPassword && newPassword
-                          ? "bg-green-600"
-                          : "bg-muted-foreground"
-                      }`}
-                    />
-                    Different from current password
-                  </li>
-                  <li
-                    className={`flex items-center gap-2 ${
-                      newPassword === confirmPassword &&
-                      newPassword &&
-                      confirmPassword
-                        ? "text-green-600"
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-1 h-1 rounded-full ${
-                        newPassword === confirmPassword &&
-                        newPassword &&
-                        confirmPassword
-                          ? "bg-green-600"
-                          : "bg-muted-foreground"
-                      }`}
-                    />
-                    Passwords match
-                  </li>
+                  <PasswordRequirement
+                    isValid={isPasswordLengthValid}
+                    label="At least 8 characters long"
+                  />
+                  <PasswordRequirement
+                    isValid={isPasswordDifferent}
+                    label="Different from current password"
+                  />
+                  <PasswordRequirement
+                    isValid={doPasswordsMatch}
+                    label="Passwords match"
+                  />
                 </ul>
               </div>
 

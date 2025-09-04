@@ -5,18 +5,17 @@ import { getCookie, deleteCookie, setCookie } from "hono/cookie";
 import type { SignInBody } from "@server/types/context";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import { users } from "@server/lib/db/schema/users";
+import type { ChangePasswordBody } from "@shared/types/auth";
 import { hashPassword, verifyPassword } from "@server/helpers/passwordHelpers";
 import {
   generateAccessToken,
   generateRefreshToken,
-  validateToken,
 } from "@server/helpers/jwtHelpers";
 import {
   accessTokenCookieOptions,
   refreshTokenCookieOptions,
 } from "@server/helpers/cookieHelpers";
 import { refreshTokens } from "@server/lib/db/schema/refreshTokens";
-import { failure, success } from "@server/helpers/apiHelper";
 
 export const authRoutes = new Hono()
   .post("/signin", async (c) => {
@@ -71,8 +70,6 @@ export const authRoutes = new Hono()
       })
       .returning();
 
-    console.log("User created:", createdUser);
-
     return c.json({
       data: createdUser,
     });
@@ -99,36 +96,53 @@ export const authRoutes = new Hono()
 
     return c.json({ data: null });
   })
+  .post("/changePassword", authMiddleware, async (c) => {
+    const { currentPassword, newPassword } =
+      (await c.req.json()) as ChangePasswordBody;
+    const user = c.get("user");
+
+    if (!user) {
+      return c.json({ error: "User is required" }, 400);
+    }
+
+    const dbUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, user.email))
+      .limit(1)
+      .then((res) => res[0]);
+
+    if (!dbUser) {
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    const passwordMatch = await verifyPassword(
+      currentPassword,
+      dbUser.password
+    );
+
+    if (!passwordMatch) {
+      return c.json({ error: "Invalid credentials" }, 401);
+    }
+
+    const hashedNewPassword = await hashPassword(newPassword);
+
+    await db
+      .update(users)
+      .set({ password: hashedNewPassword })
+      .where(eq(users.id, dbUser.id));
+
+    await db.delete(refreshTokens).where(eq(refreshTokens.userId, dbUser.id));
+
+    deleteCookie(c, "accessToken");
+    deleteCookie(c, "refreshToken");
+
+    return c.json({ data: null, message: "Password changed successfully!" });
+  })
   .post("/resetPassword", async (c) => {
-    const { email } = await c.req.json();
+    // Implement password reset logic
 
-    if (!email) {
-      return c.json({ error: "Email is required" }, 400);
-    }
-
-    const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/recover`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: process.env.SUPABASE_ANON_KEY!,
-      },
-      body: JSON.stringify({
-        email,
-        options: {
-          redirectTo: `${process.env.CLIENT_URL}/reset-password`,
-        },
-      }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      return c.json(
-        { error: "Failed to send reset email", details: errorData },
-        400
-      );
-    }
-
-    return c.json({ message: "Password reset email sent" });
+    return c.json({ data: null, message: "Password reset email sent" });
   })
   .get("/refresh", async (c) => {
     const refreshToken = getCookie(c, "refreshToken");

@@ -22,7 +22,7 @@ import {
   AlertCircle,
   Chrome,
   User,
-  CheckCircle,
+  // CheckCircle,
 } from "lucide-react";
 import { useSignUpMutation } from "@/queries/authQueries";
 
@@ -57,7 +57,7 @@ const SignUpPage = ({ className, ...props }: React.ComponentProps<"div">) => {
     success: false,
   });
 
-  const { mutate: signUp, isPending } = useSignUpMutation();
+  const { mutate: signUp } = useSignUpMutation();
 
   const updateFormData = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

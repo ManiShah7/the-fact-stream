@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ChangePasswordBody } from "shared/src/types/auth";
 import { client } from "@/queries/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -182,5 +183,46 @@ export const useRefreshTokenQuery = () => {
     refetchOnMount: false,
     refetchOnReconnect: false,
     staleTime: Infinity,
+  });
+};
+
+const changePassword = async (data: ChangePasswordBody) => {
+  const res = await client.api.v1.auth.changePassword.$post({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to change password");
+  }
+
+  return res.json();
+};
+
+export const useChangePasswordMutation = () => {
+  const queryClient = useQueryClient();
+  const auth = useAuth();
+
+  return useMutation({
+    mutationFn: changePassword,
+    onMutate: () => {
+      const toastId = crypto.randomUUID();
+      toast.loading("Changing password...", { id: toastId });
+      return { toastId };
+    },
+    onSuccess: (_data, _variables, context) => {
+      toast.success("Password changed successfully! Please log in again.", {
+        id: context?.toastId,
+      });
+      queryClient.invalidateQueries({ queryKey: ["user", "refreshToken"] });
+      auth.setAuthState((prev) => ({ ...prev, user: null }));
+    },
+    onError: (error, _variables, context) => {
+      toast.error(
+        error instanceof Error ? error.message : "Change password failed",
+        {
+          id: context?.toastId,
+        }
+      );
+    },
   });
 };
