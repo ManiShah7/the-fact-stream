@@ -12,18 +12,14 @@ type AnalyzeNewsRequest = {
   publish?: boolean;
 };
 
-const analyzeNewsMutation = async ({ url, publish }: AnalyzeNewsRequest) => {
+const analyzeNewsMutation = async (data: AnalyzeNewsRequest[]) => {
   const res = await client.api.v1.analyse.$post({
-    json: { url, publish },
+    json: data,
   });
 
   try {
     const data = await res.json();
-
-    if (("error" in data && data.error) || data.success === false) {
-      throw new Error(data.error || "News analysis failed");
-    }
-    return data;
+    return data.data;
   } catch (error) {
     console.error("Mutation error:", error);
     throw error;

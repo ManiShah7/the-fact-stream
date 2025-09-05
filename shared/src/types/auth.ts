@@ -1,5 +1,3 @@
-import type { User } from "./user";
-
 type ChangePasswordBody = {
   currentPassword: string;
   newPassword: string;

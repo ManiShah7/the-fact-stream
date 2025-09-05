@@ -91,7 +91,7 @@ export const useLoginMutation = () => {
       };
       auth.setAuthState((prev) => ({ ...prev, user }));
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/new");
+      navigate("/analyses");
     },
     onError: (error, _variables, context) => {
       toast.error(error instanceof Error ? error.message : "Login failed", {

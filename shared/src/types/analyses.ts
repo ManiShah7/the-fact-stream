@@ -1,11 +1,5 @@
-type ModelResponse = {
-  title: string;
-  summary: string;
-  politicalAlignment: string;
-  credibilityScore: number;
-  credibilityReason: string;
-  sarcasmOrSatire: string;
-  recommendedAction: string;
-};
+import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
+import { modelResponse } from "server/src/lib/db/schema/modelResponse";
 
-export type { ModelResponse };
+export type ModelResponse = InferSelectModel<typeof modelResponse>;
+export type NewModelResponse = InferInsertModel<typeof modelResponse>;

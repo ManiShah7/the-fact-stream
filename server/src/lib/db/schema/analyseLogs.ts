@@ -14,7 +14,6 @@ export const analyzeLogs = pgTable("analyze_logs", {
   id: serial("id").primaryKey().primaryKey(),
   userId: integer("user_id")
     .notNull()
-    .unique()
     .references(() => users.id),
   url: text("url").notNull(),
   articleText: text("article_text"),
@@ -25,4 +24,6 @@ export const analyzeLogs = pgTable("analyze_logs", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+  imageUrl: text("image_url"),
+  author: text("author"),
 });

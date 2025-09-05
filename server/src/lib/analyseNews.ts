@@ -33,11 +33,11 @@ If the text looks like a valid news article, analyze it and return:
   "title": "string",
   "summary": "string",
   "politicalAlignment": "left | center | right | unknown",
-  "credibilityScore": number (1 to 100),
+  "credibilityScore": number (between 1 to 100, where 1 is not credible at all and 100 is highly credible),
   "credibilityReason": "string",
   "sarcasmOrSatire": "yes | no | unsure",
   "recommendedAction": "string",
-  "imageUrl": "string",
+  "imageUrl": "find the main image of the article or one that best represents the article, if none found, return null",
   "author": "string"
 }
 

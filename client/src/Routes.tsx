@@ -8,7 +8,6 @@ const HomePage = lazy(() => import("@/pages/HomePage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 const SignUpPage = lazy(() => import("@/pages/SignUpPage"));
-const NewChatPage = lazy(() => import("@/pages/NewChatPage"));
 const PublishedNewsPage = lazy(() => import("@/pages/PublishedNewsPage"));
 const SingleAnalysis = lazy(() => import("@/pages/analyses/SingleAnalysis"));
 const AllAnalyses = lazy(() => import("@/pages/analyses/AllAnalyses"));
@@ -23,10 +22,14 @@ const Routes = () => {
       <RRRoutes>
         <Route path="/" element={<NavWrapper />}>
           <Route path="/" element={<HomePage />} />
-          {auth?.authState.user ? (
+          {auth.authState.isLoading ? (
+            <Route path="/" element={<LoadingSpinner />} />
+          ) : auth?.authState.user ? (
             <>
-              <Route path="/login" element={<Navigate to="/new" replace />} />
-              <Route path="/new" element={<NewChatPage />} />
+              <Route
+                path="/login"
+                element={<Navigate to="/analyses" replace />}
+              />
               <Route path="/analyses" element={<AllAnalyses />} />
               <Route path="/analyses/:chatId" element={<SingleAnalysis />} />
               <Route path="/published-news" element={<PublishedNewsPage />} />

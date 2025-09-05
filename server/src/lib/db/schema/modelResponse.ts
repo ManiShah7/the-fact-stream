@@ -9,4 +9,6 @@ export const modelResponse = pgTable("model_response", {
   credibilityReason: varchar().notNull(),
   sarcasmOrSatire: varchar().notNull(),
   recommendedAction: varchar().notNull(),
+  imageUrl: text("image_url"),
+  author: text("author"),
 });

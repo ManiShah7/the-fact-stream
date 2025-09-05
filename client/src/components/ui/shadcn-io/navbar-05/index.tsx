@@ -1,7 +1,6 @@
-"use client";
-
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router";
 import {
   BellIcon,
   ChevronDownIcon,
@@ -38,8 +37,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router";
 import { useLogoutMutation } from "@/queries/authQueries";
+import { useAnalyzeNewsMutation } from "@/queries/analyzeNewsQueries";
 
 const HamburgerIcon = ({
   className,
@@ -79,14 +78,17 @@ type AddNewsMenuProps = {
 
 const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [urls, setUrls] = useState<string[]>(['']);
+  const [urls, setUrls] = useState<string[]>([""]);
+
+  const { mutate: analyzeNewsLinks } = useAnalyzeNewsMutation();
 
   const handleSubmit = () => {
-    const validUrls = urls.filter(url => url.trim() !== '');
-    if (validUrls.length > 0 && onAddNewsItemClick) {
-      onAddNewsItemClick(validUrls);
-      setUrls(['']);
+    const validUrls = urls.filter((url) => url.trim() !== "");
+    if (validUrls.length > 0) {
+      setUrls([""]);
       setIsOpen(false);
+
+      analyzeNewsLinks(validUrls.map((url) => ({ url, publish: false })));
     }
   };
 
@@ -98,7 +100,7 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
 
   const addUrlField = () => {
     if (urls.length < 3) {
-      setUrls([...urls, '']);
+      setUrls([...urls, ""]);
     }
   };
 
@@ -122,8 +124,10 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
       <DropdownMenuContent align="end" className="w-80 p-4">
         <div className="space-y-4">
           <div className="text-sm font-medium">Add News Links to Analyze</div>
-          <div className="text-xs text-muted-foreground">Add 1-3 news links for AI analysis</div>
-          
+          <div className="text-xs text-muted-foreground">
+            Add 1-3 news links for AI analysis
+          </div>
+
           <div className="space-y-3">
             {urls.map((url, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -147,7 +151,7 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
                 )}
               </div>
             ))}
-            
+
             {urls.length < 3 && (
               <Button
                 variant="outline"
@@ -161,11 +165,11 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
             )}
           </div>
 
-          <Button 
-            onClick={handleSubmit} 
-            className="w-full" 
+          <Button
+            onClick={handleSubmit}
+            className="w-full"
             size="sm"
-            disabled={urls.every(url => url.trim() === '')}
+            disabled={urls.every((url) => url.trim() === "")}
           >
             <Send className="w-4 h-4 mr-2" />
             Analyze Links
@@ -466,7 +470,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                 onItemClick={onNotificationItemClick}
               />
 
-              <AddNewsMenu onAddNewsItemClick={onAddChatItemClick} />
+              <AddNewsMenu />
 
               <UserMenu
                 userName={userName}

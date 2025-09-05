@@ -12,7 +12,7 @@ type AppEnv = {
 type PostAnalyzeBody = {
   url: string;
   publish?: boolean;
-};
+}[];
 
 type SignInBody = {
   email: string;
