@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import {
   skipToken,
   useMutation,
@@ -31,35 +31,26 @@ export const useAnalyzeNewsMutation = () => {
   return useMutation({
     mutationFn: analyzeNewsMutation,
     onMutate: () => {
+      const toastId = crypto.randomUUID();
+
       return toast.loading(
-        "Analyzing news... Please wait. This may take a while."
+        "Analyzing news... Please wait. This may take a while. We will notify you once it's done.",
+        { id: toastId }
       );
     },
-    onSuccess: (data, _variables, toastId) => {
-      toast.update(toastId, {
-        render: "News analysis completed successfully!",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["analyzed-news"] });
       return data;
     },
     onError: (error, _variables, toastId) => {
       console.error(error);
-      toast.update(toastId as string, {
-        render: error.message || "News analysis failed",
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      toast.error(
+        error instanceof Error ? error.message : "News analysis failed",
+        { id: toastId }
+      );
     },
   });
 };
-
-// const getAnalyzedNewsUrlAndTitleQuery = async () => {
-
-// }
 
 const getAnalyzedNewsForUserQuery = async () => {
   const res = await client.api.v1.analyse.$get();

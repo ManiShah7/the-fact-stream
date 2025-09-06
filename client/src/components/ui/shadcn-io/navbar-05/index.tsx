@@ -39,6 +39,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLogoutMutation } from "@/queries/authQueries";
 import { useAnalyzeNewsMutation } from "@/queries/analyzeNewsQueries";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const HamburgerIcon = ({
   className,
@@ -73,41 +75,54 @@ const HamburgerIcon = ({
 );
 
 type AddNewsMenuProps = {
-  onAddNewsItemClick?: (urls: string[]) => void;
+  onAddNewsItemClick?: (urlsToAnalyze: string[]) => void;
 };
 
 const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [urls, setUrls] = useState<string[]>([""]);
+  const [urlsToAnalyze, setUrlsToAnalyze] = useState<
+    { url: string; publish: boolean }[]
+  >([{ url: "", publish: false }]);
 
   const { mutate: analyzeNewsLinks } = useAnalyzeNewsMutation();
 
   const handleSubmit = () => {
-    const validUrls = urls.filter((url) => url.trim() !== "");
+    const validUrls = urlsToAnalyze.filter((url) => url.trim() !== "");
     if (validUrls.length > 0) {
-      setUrls([""]);
+      setUrlsToAnalyze([{ url: "", publish: false }]);
       setIsOpen(false);
 
-      analyzeNewsLinks(validUrls.map((url) => ({ url, publish: false })));
+      analyzeNewsLinks(validUrls);
     }
   };
 
   const handleUrlChange = (index: number, value: string) => {
-    const newUrls = [...urls];
-    newUrls[index] = value;
-    setUrls(newUrls);
+    setUrlsToAnalyze((prevUrls) =>
+      prevUrls.map((item, i) => (i === index ? { ...item, url: value } : item))
+    );
+  };
+
+  const handlePublishChange = (index: number, checked: boolean) => {
+    setUrlsToAnalyze((prevUrls) =>
+      prevUrls.map((item, i) =>
+        i === index ? { ...item, publish: checked } : item
+      )
+    );
   };
 
   const addUrlField = () => {
-    if (urls.length < 3) {
-      setUrls([...urls, ""]);
+    if (urlsToAnalyze.length < 3) {
+      setUrlsToAnalyze((prevUrls) => [
+        ...prevUrls,
+        { url: "", publish: false },
+      ]);
     }
   };
 
   const removeUrlField = (index: number) => {
-    if (urls.length > 1) {
-      const newUrls = urls.filter((_, i) => i !== index);
-      setUrls(newUrls);
+    if (urlsToAnalyze.length > 1) {
+      const newUrls = urlsToAnalyze.filter((_, i) => i !== index);
+      setUrlsToAnalyze(newUrls);
     }
   };
 
@@ -121,7 +136,7 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
           <CirclePlus />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 p-4">
+      <DropdownMenuContent align="end" className="w-100 p-4">
         <div className="space-y-4">
           <div className="text-sm font-medium">Add News Links to Analyze</div>
           <div className="text-xs text-muted-foreground">
@@ -129,17 +144,33 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
           </div>
 
           <div className="space-y-3">
-            {urls.map((url, index) => (
+            {urlsToAnalyze.map((url, index) => (
               <div key={index} className="flex items-center gap-2">
-                <div className="flex-1 space-y-1">
+                <div className="flex  gap-2 flex-1 space-y-1">
                   <Input
                     placeholder="https://example.com/news-article"
-                    value={url}
+                    value={url.url}
                     onChange={(e) => handleUrlChange(index, e.target.value)}
                     className="text-sm"
                   />
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id={`publish-switch-${index}`}
+                      checked={url.publish}
+                      onCheckedChange={(checked) =>
+                        handlePublishChange(index, checked)
+                      }
+                    />
+                    <Label
+                      htmlFor={`publish-switch-${index}`}
+                      className="text-sm"
+                    >
+                      Publish
+                    </Label>
+                  </div>
                 </div>
-                {urls.length > 1 && (
+                {urlsToAnalyze.length > 1 && (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -152,7 +183,7 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
               </div>
             ))}
 
-            {urls.length < 3 && (
+            {urlsToAnalyze.length < 3 && (
               <Button
                 variant="outline"
                 size="sm"
@@ -169,7 +200,7 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
             onClick={handleSubmit}
             className="w-full"
             size="sm"
-            disabled={urls.every((url) => url.trim() === "")}
+            disabled={urlsToAnalyze.every((url) => url.url.trim() === "")}
           >
             <Send className="w-4 h-4 mr-2" />
             Analyze Links
@@ -317,7 +348,7 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   userAvatar?: string;
   notificationCount?: number;
   onNavItemClick?: (href: string) => void;
-  onAddChatItemClick?: (urls: string[]) => void;
+  onAddChatItemClick?: (urlsToAnalyze: string[]) => void;
   onNotificationItemClick?: (item: string) => void;
   onUserItemClick?: (item: string) => void;
 }

@@ -1,30 +1,39 @@
+import { client } from "@server/lib/db";
 import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
+import type { WSContext } from "hono/ws";
 
 const { upgradeWebSocket } = createBunWebSocket();
 
+const watchers = new Map<string, Set<WSContext>>();
+
 export const websocketRoutes = new Hono().get(
-  "/",
+  "/:analysisId",
   upgradeWebSocket((c) => {
+    const analysisId = c.req.param("analysisId");
+
     return {
       onOpen: (evt, ws) => {
-        ws.send("Opened");
-      },
-      onMessage(event, ws) {
-        if (event.data === "ping") {
-          console.log("Received ping from client, sending pong");
-          ws.send("pong");
-          return;
+        console.log(`Client watching analysis ${analysisId}`);
+        if (!watchers.has(analysisId)) {
+          watchers.set(analysisId, new Set());
         }
-
-        if (event.data === "pong") {
-          console.log("Received pong from client");
-          return;
-        }
+        watchers.get(analysisId)!.add(ws);
       },
-      onClose: () => {
-        console.log("Connection closed");
+      onClose: (evt, ws) => {
+        watchers.get(analysisId)?.delete(ws);
       },
     };
   })
 );
+
+client.listen("analysis_events", (analysisId: string) => {
+  const conns = watchers.get(analysisId);
+  if (conns) {
+    for (const ws of conns) {
+      ws.send(JSON.stringify({ analysisId, status: "done" }));
+      ws.close();
+    }
+    watchers.delete(analysisId);
+  }
+});
