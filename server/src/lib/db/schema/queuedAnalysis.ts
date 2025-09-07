@@ -1,6 +1,6 @@
 import { integer, pgTable, serial, text } from "drizzle-orm/pg-core";
-import { users } from "./users";
-import { analyzeLogs } from "./analyseLogs";
+import { users } from "@server/lib/db/schema/users";
+import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
 
 export const queuedAnalysis = pgTable("queuedAnalysis", {
   id: serial("id").primaryKey(),
@@ -12,4 +12,6 @@ export const queuedAnalysis = pgTable("queuedAnalysis", {
     .notNull()
     .unique()
     .references(() => analyzeLogs.id),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
 });

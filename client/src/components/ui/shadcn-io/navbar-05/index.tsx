@@ -74,11 +74,11 @@ const HamburgerIcon = ({
   </svg>
 );
 
-type AddNewsMenuProps = {
-  onAddNewsItemClick?: (urlsToAnalyze: string[]) => void;
-};
+// type AddNewsMenuProps = {
+//   onAddNewsItemClick?: (urlsToAnalyze: string[]) => void;
+// };
 
-const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
+const AddNewsMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [urlsToAnalyze, setUrlsToAnalyze] = useState<
     { url: string; publish: boolean }[]
@@ -87,7 +87,7 @@ const AddNewsMenu = ({ onAddNewsItemClick }: AddNewsMenuProps) => {
   const { mutate: analyzeNewsLinks } = useAnalyzeNewsMutation();
 
   const handleSubmit = () => {
-    const validUrls = urlsToAnalyze.filter((url) => url.trim() !== "");
+    const validUrls = urlsToAnalyze.filter((url) => url.url.trim() !== "");
     if (validUrls.length > 0) {
       setUrlsToAnalyze([{ url: "", publish: false }]);
       setIsOpen(false);
@@ -348,7 +348,6 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   userAvatar?: string;
   notificationCount?: number;
   onNavItemClick?: (href: string) => void;
-  onAddChatItemClick?: (urlsToAnalyze: string[]) => void;
   onNotificationItemClick?: (item: string) => void;
   onUserItemClick?: (item: string) => void;
 }
@@ -367,7 +366,6 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
       onNavItemClick,
       onNotificationItemClick,
       onUserItemClick,
-      onAddChatItemClick,
       ...props
     },
     ref

@@ -6,7 +6,6 @@ export const refreshTokens = pgTable("refresh_tokens", {
   token: text("token").notNull(),
   userId: integer("user_id")
     .notNull()
-    .unique()
     .references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at")

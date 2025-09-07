@@ -21,6 +21,10 @@ export const authRoutes = new Hono()
   .post("/signin", async (c) => {
     const { email, password } = (await c.req.json()) as SignInBody;
 
+    if (!email || !password) {
+      return c.json({ error: "Email and password are required" }, 400);
+    }
+
     const user = await db
       .select()
       .from(users)

@@ -26,8 +26,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       setAuthState((prev) => ({ ...prev, user: null, error }));
     }
-
-    console.log(error);
   }, [userData, error]);
 
   useEffect(() => {
