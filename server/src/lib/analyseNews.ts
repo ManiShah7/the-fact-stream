@@ -15,7 +15,7 @@ export const analyzeArticleContent = async <T>(
       rawOutput: string | null | undefined;
     }
 > => {
-  const prompt = `You are an expert political news analyst. Your task is to analyze a news article text provided to you and return a structured JSON object.
+  const prompt = `You are an expert news analyst. Your task is to analyze any type of news article text provided to you and return a structured JSON object.
 
 First, determine whether the text represents a valid news article. Users might send random, fake, or irrelevant links, so you must carefully evaluate if the content resembles an actual news report. 
 If the text appears to have errors about access being denied or errors, it probably means that website has blocked puppeteer. In this case, respond with: {
@@ -24,7 +24,7 @@ If the text appears to have errors about access being denied or errors, it proba
 
 If the text does not look like a valid news article, respond with:
 {
-  "error": "The provided text is not a valid political news article."
+  "error": "The provided text is not a valid news article."
 }
 
 
@@ -32,18 +32,18 @@ If the text looks like a valid news article, analyze it and return:
 {
   "title": "string",
   "summary": "string",
-  "politicalAlignment": "left | center | right | unknown",
+  "politicalAlignment": "left | center | right | unknown | null (use null for non-political news like sports, tech, entertainment, etc.)",
   "credibilityScore": number (between 1 to 100, where 1 is not credible at all and 100 is highly credible),
   "credibilityReason": "string",
   "sarcasmOrSatire": "yes | no | unsure",
   "recommendedAction": "string",
-  "imageUrl": "find the main image of the article or one that best represents the article, if none found, return null",
+  "imageUrl": "Extract the URL of the main article image. Look for: 1) og:image meta tags, 2) featured/hero images in the article content, 3) images with classes like 'featured', 'hero', 'main', or 4) the first substantial image in the article. Return the full absolute URL or null if no suitable image found",
   "author": "string"
 }
 
 Your analysis should be objective and unbiased. The "sarcasmOrSatire" field should indicate whether the text appears sarcastic, satirical, or ironic.
 
-Always answer in English, even if the article is in another language. If you cannot determine the political alignment, set it to "unknown". The "credibilityScore" should be a number between 0.0 and 1.0, where 1.0 is highly credible and 0.0 is not credible at all.
+Always answer in English, even if the article is in another language. For political news, determine alignment as "left", "center", "right", or "unknown". For non-political news (sports, technology, entertainment, science, health, business, etc.), set "politicalAlignment" to null. The "credibilityScore" should be a number between 0.0 and 1.0, where 1.0 is highly credible and 0.0 is not credible at all.
 
 Here is the article text:
 =====
