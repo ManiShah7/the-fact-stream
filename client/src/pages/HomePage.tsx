@@ -22,7 +22,7 @@ const HomePage = () => {
   // });
 
   return (
-    <div className="h-svh">
+    <div className="h-[calc(100vh-5rem)]">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <header className="text-center mb-8">
           <div className="flex justify-center mb-6">
