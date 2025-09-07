@@ -1,39 +1,33 @@
-import { client } from "@server/lib/db";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
 import type { WSContext } from "hono/ws";
+import { db } from "@server/lib/db";
+import { queuedAnalysis } from "@server/lib/db/schema/queuedAnalysis";
 
 const { upgradeWebSocket } = createBunWebSocket();
 
-const watchers = new Map<string, Set<WSContext>>();
+const getQueuedJobsForUser = async (userId: string) =>
+  await db
+    .select()
+    .from(queuedAnalysis)
+    .where(eq(queuedAnalysis.userId, Number(userId)));
 
 export const websocketRoutes = new Hono().get(
-  "/:analysisId",
+  "/:userId",
   upgradeWebSocket((c) => {
-    const analysisId = c.req.param("analysisId");
+    const userId = c.req.param("userId");
 
     return {
-      onOpen: (evt, ws) => {
-        console.log(`Client watching analysis ${analysisId}`);
-        if (!watchers.has(analysisId)) {
-          watchers.set(analysisId, new Set());
-        }
-        watchers.get(analysisId)!.add(ws);
+      onOpen: (evt, ws) => {},
+      onMessage: (evt, ws) => {
+        const message = evt.data;
+        console.log(`Received message from ${userId}: ${message}`);
+
+        const jobs = getQueuedJobsForUser(userId);
+        ws.send(JSON.stringify({ type: "queuedJobs", jobs }));
       },
-      onClose: (evt, ws) => {
-        watchers.get(analysisId)?.delete(ws);
-      },
+      onClose: (evt, ws) => {},
     };
   })
 );
-
-client.listen("analysis_events", (analysisId: string) => {
-  const conns = watchers.get(analysisId);
-  if (conns) {
-    for (const ws of conns) {
-      ws.send(JSON.stringify({ analysisId, status: "done" }));
-      ws.close();
-    }
-    watchers.delete(analysisId);
-  }
-});

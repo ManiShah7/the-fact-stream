@@ -193,20 +193,12 @@ export const authRoutes = new Hono()
       setCookie(c, "accessToken", newAccessToken, accessTokenCookieOptions);
       setCookie(c, "refreshToken", newRefreshToken, refreshTokenCookieOptions);
 
-      await db
-        .insert(refreshTokens)
-        .values({
-          userId: user.id,
+      await db.update(refreshTokens)
+        .set({
           token: newRefreshToken,
           expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         })
-        .onConflictDoUpdate({
-          target: refreshTokens.userId,
-          set: {
-            token: newRefreshToken,
-            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-          },
-        });
+        .where(eq(refreshTokens.id, dbRefreshTokenRow.id));
 
       return c.json({ data: user, message: "Token refreshed successfully!" });
     } catch (error) {

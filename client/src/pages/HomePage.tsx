@@ -1,4 +1,3 @@
-// import useWebSocket from "react-use-websocket";
 import { Link } from "react-router";
 import { Shield, Newspaper, ArrowRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,17 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 const HomePage = () => {
   const auth = useAuth();
-
-  // const socketUrl = "ws://localhost:9000/api/v1/ws/12345";
-  // const { sendMessage, lastMessage } = useWebSocket(socketUrl, {
-  //   onOpen: () => console.log("opened"),
-  //   onMessage: (event) => {
-  //     const data = event.data;
-
-  //     console.log("Received message:", data);
-  //   },
-  //   shouldReconnect: () => true,
-  // });
 
   return (
     <div className="h-[calc(100vh-5rem)]">
