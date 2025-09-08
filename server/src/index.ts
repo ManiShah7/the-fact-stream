@@ -1,5 +1,5 @@
+import dotEnv from "@dotenvx/dotenvx";
 import { Hono } from "hono";
-import { jwt } from "hono/jwt";
 import type { JwtVariables } from "hono/jwt";
 import { cors } from "hono/cors";
 import { createBunWebSocket } from "hono/bun";
@@ -7,6 +7,7 @@ import { authRoutes } from "@server/routes/auth";
 import { analyseRoutes } from "@server/routes/analayse";
 import { publishRoutes } from "@server/routes/publish";
 import { websocketRoutes } from "@server/routes/websocket";
+import { queueRoutes } from "./routes/queue";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket();
 
@@ -19,14 +20,12 @@ export const app = new Hono<{ Variables: Variables }>()
       allowHeaders: ["Access-Control-Allow-Credentials", "Content-Type"],
       credentials: true,
     })
-    // jwt({
-    //   secret: "fjsojfklsa",
-    // })
   )
-  .route("/api/v1/auth", authRoutes)
-  .route("/api/v1/analyse", analyseRoutes)
-  .route("/api/v1/published", publishRoutes)
-  .route("/api/v1/ws", websocketRoutes);
+  .route(`${process.env.API_WITH_VERSION}/auth`, authRoutes)
+  .route(`${process.env.API_WITH_VERSION}/analyse`, analyseRoutes)
+  .route(`${process.env.API_WITH_VERSION}/published`, publishRoutes)
+  .route(`${process.env.API_WITH_VERSION}/count`, queueRoutes)
+  .route(`${process.env.API_WITH_VERSION}/ws`, websocketRoutes);
 
 export { upgradeWebSocket };
 

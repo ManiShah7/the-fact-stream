@@ -104,62 +104,59 @@ export const analyseRoutes = new Hono()
   })
   .post("/", authMiddleware, async (c) => {
     const req = (await c.req.json()) as PostAnalyzeBody;
-    const user = c.get("user");
 
-    console.log(req);
-
-    req.forEach((item) => {
-      if (!item.url) {
-        return c.json({ error: "URL is required", success: false }, 400);
-      }
-    });
-
-    const results = [];
-
-    for (const item of req) {
-      const { url, publish } = item;
-
-      const pageContent = await readUrl(url);
-      const analysis = await analyzeArticleContent(pageContent);
-
-      if (typeof analysis !== "string" && "error" in analysis) {
-        results.push({ error: analysis.error, success: false });
-        continue;
-      }
-
-      const insertedModelResponse = await db
-        .insert(modelResponse)
-        .values({
-          title: analysis.title,
-          summary: analysis.summary,
-          politicalAlignment: analysis.politicalAlignment,
-          credibilityScore: analysis.credibilityScore.toString(),
-          credibilityReason: analysis.credibilityReason,
-          sarcasmOrSatire: analysis.sarcasmOrSatire,
-          recommendedAction: analysis.recommendedAction,
-          imageUrl: analysis.imageUrl,
-          author: analysis.author,
-        })
-        .returning({ id: modelResponse.id });
-
-      const insertedAnalyzeLog = await db
-        .insert(analyzeLogs)
-        .values({
-          userId: user.id,
-          url,
-          articleText: pageContent,
-          modelResponseId: insertedModelResponse[0]?.id,
-          isPublished: publish,
-        })
-        .returning();
-
-      results.push(insertedAnalyzeLog[0]);
+    if (req.some((item) => !item.url)) {
+      return c.json({ data: { url: "URL is required" }, status: "fail" }, 400);
     }
 
     return c.json({
-      data: results,
-      success: true,
+      status: "success",
+      data: {
+        queuedCount: req.length,
+      },
     });
+
+    // const results = [];
+
+    // for (const item of req) {
+    //   const { url, publish } = item;
+
+    //   const pageContent = await readUrl(url);
+    //   const analysis = await analyzeArticleContent(pageContent);
+
+    //   if (typeof analysis !== "string" && "error" in analysis) {
+    //     results.push({ error: analysis.error, success: false });
+    //     continue;
+    //   }
+
+    //   const insertedModelResponse = await db
+    //     .insert(modelResponse)
+    //     .values({
+    //       title: analysis.title,
+    //       summary: analysis.summary,
+    //       politicalAlignment: analysis.politicalAlignment,
+    //       credibilityScore: analysis.credibilityScore.toString(),
+    //       credibilityReason: analysis.credibilityReason,
+    //       sarcasmOrSatire: analysis.sarcasmOrSatire,
+    //       recommendedAction: analysis.recommendedAction,
+    //       imageUrl: analysis.imageUrl,
+    //       author: analysis.author,
+    //     })
+    //     .returning({ id: modelResponse.id });
+
+    //   const insertedAnalyzeLog = await db
+    //     .insert(analyzeLogs)
+    //     .values({
+    //       userId: user.id,
+    //       url,
+    //       articleText: pageContent,
+    //       modelResponseId: insertedModelResponse[0]?.id,
+    //       isPublished: publish,
+    //     })
+    //     .returning();
+
+    //   results.push(insertedAnalyzeLog[0]);
+    // }
   })
   .patch(":id", authMiddleware, async (c) => {
     const user = c.get("user");
