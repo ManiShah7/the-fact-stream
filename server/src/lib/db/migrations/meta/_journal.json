@@ -8,6 +8,20 @@
       "when": 1751545667110,
       "tag": "0000_even_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1757417434782,
+      "tag": "0001_faithful_celestials",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757418543277,
+      "tag": "0002_windy_doctor_faustus",
+      "breakpoints": true
     }
   ]
 }

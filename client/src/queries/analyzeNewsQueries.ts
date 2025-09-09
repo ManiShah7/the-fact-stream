@@ -33,7 +33,7 @@ export const useAnalyzeNewsMutation = () => {
     onMutate: () => {
       const toastId = crypto.randomUUID();
 
-      return toast.loading(
+      return toast.info(
         "Analyzing news... Please wait. This may take a while. We will notify you once it's done.",
         { id: toastId }
       );

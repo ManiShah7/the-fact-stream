@@ -2,7 +2,7 @@ import { integer, pgTable, serial, text } from "drizzle-orm/pg-core";
 import { users } from "@server/lib/db/schema/users";
 import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
 
-export const queuedAnalysis = pgTable("queuedAnalysis", {
+export const queuedAnalysis = pgTable("queued_analysis", {
   id: serial("id").primaryKey(),
   status: text("status"),
   userId: integer("user_id")
