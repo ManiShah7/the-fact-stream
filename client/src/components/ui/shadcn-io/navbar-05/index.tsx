@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
+// import useWebSocket from "react-use-websocket";
 import {
   BellIcon,
   ChevronDownIcon,
@@ -38,10 +39,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLogoutMutation } from "@/queries/authQueries";
-import { useAnalyzeNewsMutation } from "@/queries/analyzeNewsQueries";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import useWebSocket from "react-use-websocket";
+import { useQueueAnalysisLinksMutation } from "@/queries/queuedAnalysisQueries";
+import { QueueAnalysesParams } from "@server/types/queue";
 
 const HamburgerIcon = ({
   className,
@@ -81,11 +82,11 @@ const HamburgerIcon = ({
 
 const AddNewsMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [urlsToAnalyze, setUrlsToAnalyze] = useState<
-    { url: string; publish: boolean }[]
-  >([{ url: "", publish: false }]);
+  const [urlsToAnalyze, setUrlsToAnalyze] = useState<QueueAnalysesParams[]>([
+    { url: "", publish: false },
+  ]);
 
-  const { mutate: analyzeNewsLinks } = useAnalyzeNewsMutation();
+  const { mutate: queueAnalysisLinks } = useQueueAnalysisLinksMutation();
 
   const handleSubmit = () => {
     const validUrls = urlsToAnalyze.filter((url) => url.url.trim() !== "");
@@ -93,7 +94,7 @@ const AddNewsMenu = () => {
       setUrlsToAnalyze([{ url: "", publish: false }]);
       setIsOpen(false);
 
-      analyzeNewsLinks(validUrls);
+      queueAnalysisLinks(validUrls);
     }
   };
 
@@ -141,7 +142,11 @@ const AddNewsMenu = () => {
         <div className="space-y-4">
           <div className="text-sm font-medium">Add News Links to Analyze</div>
           <div className="text-xs text-muted-foreground">
-            Add 1-3 news links for AI analysis
+            You can queue up to 1-3 news links for AI analysis.
+            <div className="mt-1 text-xs text-muted-foreground italic">
+              Please note that it may take a few minutes to process each link.
+              We will notify you once the analysis is complete.
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -152,7 +157,6 @@ const AddNewsMenu = () => {
                     placeholder="https://example.com/news-article"
                     value={url.url}
                     onChange={(e) => handleUrlChange(index, e.target.value)}
-                    className="text-sm"
                   />
 
                   <div className="flex items-center space-x-2">
@@ -220,41 +224,14 @@ const NotificationMenu = ({
   notificationCount?: number;
   onItemClick?: (item: string) => void;
 }) => {
-  const [something, setSomething] = useState<any>(null);
-
-  const socketUrl = "ws://localhost:9000/api/v1/ws/1";
-  const { sendMessage, lastMessage } = useWebSocket(socketUrl, {
-    onOpen: () => console.log("opened"),
-    onMessage: (event) => {
-      const data = event.data;
-
-      console.log("Received message:", data);
-    },
-    shouldReconnect: () => true,
-  });
-
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     sendMessage("ping");
-  //   }, 10000);
-  // }, [sendMessage]);
-
-  useEffect(() => {
-    console.log("Last message:", lastMessage);
-    // const parsed = lastMessage?.data ? JSON.parse(lastMessage.data) : null;
-
-    // if (!parsed) return;
-    // setSomething(parsed.jobs.length);
-  }, [lastMessage]);
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9 relative">
           <BellIcon className="h-4 w-4" />
-          {something > 0 && (
+          {notificationCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-              {something > 9 ? "9+" : something}
+              {notificationCount > 9 ? "9+" : notificationCount}
             </Badge>
           )}
           <span className="sr-only">Queued Analysis</span>

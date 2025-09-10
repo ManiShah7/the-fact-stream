@@ -19,7 +19,9 @@ export const analyzeLogs = pgTable("analyze_logs", {
   articleText: text("article_text"),
   modelResponseId: uuid("model_response_id").references(() => modelResponse.id),
   isPublished: boolean("is_published").default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
   updatedAt: timestamp("updated_at")
     .notNull()
     .defaultNow()

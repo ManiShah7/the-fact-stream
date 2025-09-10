@@ -22,6 +22,41 @@
       "when": 1757418543277,
       "tag": "0002_windy_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757499159469,
+      "tag": "0003_bent_maddog",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757500428145,
+      "tag": "0004_organic_toxin",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1757500487345,
+      "tag": "0005_familiar_lady_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757500676559,
+      "tag": "0006_round_stick",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757500744295,
+      "tag": "0007_pretty_patriot",
+      "breakpoints": true
     }
   ]
 }

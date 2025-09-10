@@ -1,0 +1,1 @@
+ALTER TABLE "queued_analysis" ALTER COLUMN "analysis_id" DROP NOT NULL;

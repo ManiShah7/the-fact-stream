@@ -3,7 +3,6 @@ import { eq, and, desc } from "drizzle-orm";
 import { analyzeArticleContent } from "@server/lib/analyseNews";
 import { db } from "@server/lib/db";
 import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
-import { readUrl } from "@server/lib/puppeteerUtils";
 import { authMiddleware } from "@server/middleware/authMiddleware";
 import type { PostAnalyzeBody } from "@server/types/context";
 import { modelResponse } from "@server/lib/db/schema/modelResponse";

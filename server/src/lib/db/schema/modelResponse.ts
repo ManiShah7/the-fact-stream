@@ -1,4 +1,11 @@
-import { pgTable, uuid, varchar, text, numeric } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  numeric,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const modelResponse = pgTable("model_response", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -11,4 +18,11 @@ export const modelResponse = pgTable("model_response", {
   recommendedAction: varchar().notNull(),
   imageUrl: text("image_url"),
   author: text("author"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
 });
