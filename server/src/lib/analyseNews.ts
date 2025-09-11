@@ -37,7 +37,7 @@ If the text looks like a valid news article, analyze it and return:
   "credibilityReason": "string",
   "sarcasmOrSatire": "yes | no | unsure",
   "recommendedAction": "string",
-  "imageUrl": "Extract the URL of the main article image. Look for: 1) og:image meta tags, 2) featured/hero images in the article content, 3) images with classes like 'featured', 'hero', 'main', or 4) the first substantial image in the article. Return the full absolute URL or null if no suitable image found",
+  "imageUrl": "Extract the URL of the main article image. Look for: 1) og:image meta tags, 2) featured/hero images in the article content, 3) images with classes like 'featured', 'hero', 'main' or 4) the first substantial image in the article, or 5) img tags. Return the full absolute URL or null if no suitable image found",
   "author": "string"
 }
 
