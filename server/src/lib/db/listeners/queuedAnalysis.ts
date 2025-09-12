@@ -80,7 +80,20 @@ export function listenQueuedAnalysis() {
         .set({ status: "completed", analysisId: insertedAnalyzeLog[0].id })
         .where(eq(queuedAnalysis.id, data.id));
 
-      console.log("✅ Analysis completed and logged:", insertedAnalyzeLog[0]);
+      try {
+        await client.notify(
+          "websocket_channel",
+          JSON.stringify({
+            jobId: data.id,
+            status: "completed",
+            analysisId: insertedAnalyzeLog[0].id,
+            userId: data.userId,
+          })
+        );
+        console.log("✅ Notification sent successfully");
+      } catch (notifyError) {
+        console.error("Failed to send notification:", notifyError);
+      }
     } catch (err) {
       console.error("Failed to parse notification payload:", err, payload);
     }

@@ -8,6 +8,7 @@ import { publishRoutes } from "@server/routes/publish";
 import { websocketRoutes } from "@server/routes/websocket";
 import { queueRoutes } from "@server/routes/queue";
 import { listenQueuedAnalysis } from "@server/lib/db/listeners/queuedAnalysis";
+import { listenWebSocketChannel } from "./lib/db/listeners/websocket";
 
 const { upgradeWebSocket, websocket } = createBunWebSocket();
 
@@ -28,6 +29,7 @@ export const app = new Hono<{ Variables: Variables }>()
   .route("api/v1/ws", websocketRoutes);
 
 listenQueuedAnalysis();
+listenWebSocketChannel();
 
 export { upgradeWebSocket };
 

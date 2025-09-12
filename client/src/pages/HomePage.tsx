@@ -43,7 +43,7 @@ const HomePage = () => {
                 reliability scores powered by advanced AI.
               </p>
 
-              <div className="flex justify-center items-center gap-4 mb-8">
+              <div className="flex justify-center items-center gap-4 mb-4">
                 <Badge
                   variant="outline"
                   className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1"

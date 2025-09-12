@@ -1,11 +1,10 @@
 import { Hono } from "hono";
 import { eq, desc } from "drizzle-orm";
 import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
-import { authMiddleware } from "@server/middleware/authMiddleware";
 import { db } from "@server/lib/db";
 import { modelResponse } from "@server/lib/db/schema/modelResponse";
 
-export const publishRoutes = new Hono().get("/", authMiddleware, async (c) => {
+export const publishRoutes = new Hono().get("/", async (c) => {
   const results = await db
     .selectDistinct()
     .from(analyzeLogs)
