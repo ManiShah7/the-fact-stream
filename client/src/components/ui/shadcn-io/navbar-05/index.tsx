@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
-import useWebSocket from "react-use-websocket";
 import {
   BellIcon,
   ChevronDownIcon,
@@ -76,24 +75,19 @@ const HamburgerIcon = ({
   </svg>
 );
 
-// type AddNewsMenuProps = {
-//   onAddNewsItemClick?: (urlsToAnalyze: string[]) => void;
-// };
-
 const AddNewsMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [urlsToAnalyze, setUrlsToAnalyze] = useState<QueueAnalysesParams[]>([
     { url: "", publish: false },
   ]);
 
-  const { mutate: queueAnalysisLinks } = useQueueAnalysisLinksMutation();
+  const { mutate: queueAnalysisLinks, data } = useQueueAnalysisLinksMutation();
 
   const handleSubmit = () => {
     const validUrls = urlsToAnalyze.filter((url) => url.url.trim() !== "");
     if (validUrls.length > 0) {
       setUrlsToAnalyze([{ url: "", publish: false }]);
       setIsOpen(false);
-
       queueAnalysisLinks(validUrls);
     }
   };
@@ -377,29 +371,6 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
     },
     ref
   ) => {
-    const [messageHistory, setMessageHistory] = useState<MessageEvent<any>[]>(
-      []
-    );
-
-    const { sendMessage, lastMessage, readyState } = useWebSocket(
-      "ws://localhost:9000/api/v1/ws/1",
-      {
-        onOpen: () => console.log("WebSocket connection opened."),
-        onClose: () => console.log("WebSocket connection closed."),
-        onError: (event) => console.error("WebSocket error:", event),
-        onMessage: (message) => console.log("Received message:", message),
-        shouldReconnect: (closeEvent) => true, // Always attempt to reconnect
-      }
-    );
-
-    useEffect(() => {
-      console.log(lastMessage);
-      if (lastMessage !== null) {
-        const parsedData = JSON.parse(lastMessage.data);
-        console.log("Parsed WebSocket data:", parsedData);
-      }
-    }, [lastMessage]);
-
     const [isMobile, setIsMobile] = useState(false);
     const containerRef = useRef<HTMLElement>(null);
     const navigate = useNavigate();

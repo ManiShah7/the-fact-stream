@@ -1,28 +1,7 @@
-import { client } from "./client";
-import { skipToken, useMutation, useQuery } from "@tanstack/react-query";
-import type { QueueAnalysesParams } from "@server/types/queue";
 import { toast } from "sonner";
-
-const checkQueuedAnalysisQueries = async ({ userId }: { userId: number }) => {
-  const res = await client.api.v1.ws[":userId"].$get({
-    param: { userId: userId.toString() },
-  });
-
-  if (!res.ok) {
-    throw new Error(`HTTP error status: ${res.status}`);
-  }
-
-  const data = await res.json();
-
-  return data;
-};
-
-export const useCheckQueuedAnalysisQueriesQuery = (userId?: number) => {
-  return useQuery({
-    queryKey: ["checkQueuedAnalysisQueries", userId],
-    queryFn: userId ? () => checkQueuedAnalysisQueries({ userId }) : skipToken,
-  });
-};
+import { useMutation } from "@tanstack/react-query";
+import type { QueueAnalysesParams } from "@server/types/queue";
+import { client } from "./client";
 
 const queueAnalysisLinksMutation = async (data: QueueAnalysesParams[]) => {
   const res = await client.api.v1.queue.$post({ json: data });
@@ -45,13 +24,15 @@ export const useQueueAnalysisLinksMutation = () => {
       toast.loading("Queueing analysis...", { id: toastId });
       return { toastId };
     },
-    onSuccess: (_data, _variables, context) => {
+    onSuccess: (data, _variables, context) => {
       toast.success(
         "Analysis queued successfully! We will notify you once done.",
         {
           id: context?.toastId,
         }
       );
+
+      return data.data;
     },
     onError: (error, _variables, context) => {
       toast.error(

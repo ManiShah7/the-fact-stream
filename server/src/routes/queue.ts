@@ -16,14 +16,17 @@ export const queueRoutes = new Hono().post("/", authMiddleware, async (c) => {
     return c.json({ error: "No analyses to queue" }, 400);
   }
 
-  await db.insert(queuedAnalysis).values(
-    requestBody.map((item) => ({
-      status: "queued",
-      userId: user.id,
-      url: item.url,
-      publish: item.publish || false,
-    }))
-  );
+  const insertedAnalyses = await db
+    .insert(queuedAnalysis)
+    .values(
+      requestBody.map((item) => ({
+        status: "queued",
+        userId: user.id,
+        url: item.url,
+        publish: item.publish || false,
+      }))
+    )
+    .returning();
 
-  return c.json({ status: "success", data: requestBody });
+  return c.json({ status: "success", data: insertedAnalyses });
 });
