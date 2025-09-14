@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 import {
   BellIcon,
   ChevronDownIcon,
@@ -42,6 +43,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useQueueAnalysisLinksMutation } from "@/queries/queuedAnalysisQueries";
 import { QueueAnalysesParams } from "@server/types/queue";
+import { useAuth } from "@/hooks/useAuth";
 
 const HamburgerIcon = ({
   className,
@@ -218,6 +220,29 @@ const NotificationMenu = ({
   notificationCount?: number;
   onItemClick?: (item: string) => void;
 }) => {
+  const [messageHistory, setMessageHistory] = useState<string[]>([]);
+  const userId = useAuth()?.authState?.user?.id;
+
+  const { sendMessage, lastMessage, readyState } = useWebSocket(
+    userId
+      ? `${import.meta.env.VITE_SERVER_URL}/api/v1/ws/${userId}/updates`
+      : null,
+    {
+      onOpen: () => console.log("WebSocket connection opened."),
+      onMessage: (data) => console.log("WebSocket message received:", data),
+      onClose: () => console.log("WebSocket connection closed."),
+      shouldReconnect: (closeEvent) => true,
+    }
+  );
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      setMessageHistory((prev) => [...prev, JSON.parse(lastMessage.data)]);
+    }
+  }, [lastMessage]);
+
+  console.log(messageHistory);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
