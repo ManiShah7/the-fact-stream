@@ -7,3 +7,7 @@ export type NewModelResponse = InferInsertModel<typeof modelResponse>;
 
 export type AnalyzeLog = InferSelectModel<typeof analyzeLogs>;
 export type NewAnalyzeLog = InferInsertModel<typeof analyzeLogs>;
+
+export type AnalyzedNewsData = AnalyzeLog & {
+  modelResponse: ModelResponse | null;
+};

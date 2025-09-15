@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router";
-import useWebSocket, { ReadyState } from "react-use-websocket";
+import { Link, useNavigate } from "react-router";
 import {
   BellIcon,
   ChevronDownIcon,
@@ -43,7 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useQueueAnalysisLinksMutation } from "@/queries/queuedAnalysisQueries";
 import { QueueAnalysesParams } from "@server/types/queue";
-import { useAuth } from "@/hooks/useAuth";
+import { AnalysisStatus } from "shared/dist/shared/src/types/analysisStatus";
 
 const HamburgerIcon = ({
   className,
@@ -83,7 +82,7 @@ const AddNewsMenu = () => {
     { url: "", publish: false },
   ]);
 
-  const { mutate: queueAnalysisLinks, data } = useQueueAnalysisLinksMutation();
+  const { mutate: queueAnalysisLinks } = useQueueAnalysisLinksMutation();
 
   const handleSubmit = () => {
     const validUrls = urlsToAnalyze.filter((url) => url.url.trim() !== "");
@@ -212,37 +211,18 @@ const AddNewsMenu = () => {
   );
 };
 
+type NotificationMenuProps = {
+  notificationCount?: number;
+  onItemClick?: (item: AnalysisStatus) => void;
+  notificationItems?: AnalysisStatus[];
+};
+
 // Notification Menu Component
 const NotificationMenu = ({
   notificationCount = 3,
   onItemClick,
-}: {
-  notificationCount?: number;
-  onItemClick?: (item: string) => void;
-}) => {
-  const [messageHistory, setMessageHistory] = useState<string[]>([]);
-  const userId = useAuth()?.authState?.user?.id;
-
-  const { sendMessage, lastMessage, readyState } = useWebSocket(
-    userId
-      ? `${import.meta.env.VITE_SERVER_URL}/api/v1/ws/${userId}/updates`
-      : null,
-    {
-      onOpen: () => console.log("WebSocket connection opened."),
-      onMessage: (data) => console.log("WebSocket message received:", data),
-      onClose: () => console.log("WebSocket connection closed."),
-      shouldReconnect: (closeEvent) => true,
-    }
-  );
-
-  useEffect(() => {
-    if (lastMessage !== null) {
-      setMessageHistory((prev) => [...prev, JSON.parse(lastMessage.data)]);
-    }
-  }, [lastMessage]);
-
-  console.log(messageHistory);
-
+  notificationItems,
+}: NotificationMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -253,37 +233,46 @@ const NotificationMenu = ({
               {notificationCount > 9 ? "9+" : notificationCount}
             </Badge>
           )}
-          <span className="sr-only">Queued Analysis</span>
+          <span className="sr-only">Notifications</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Queued Analysis</DropdownMenuLabel>
+        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* <DropdownMenuItem onClick={() => onItemClick?.("notification1")}>
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">New message received</p>
-            <p className="text-xs text-muted-foreground">2 minutes ago</p>
+        {notificationCount === 0 || !notificationItems ? (
+          <div className="p-4 text-sm text-muted-foreground">
+            No new notifications
           </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onItemClick?.("notification2")}>
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">System update available</p>
-            <p className="text-xs text-muted-foreground">1 hour ago</p>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onItemClick?.("notification3")}>
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">Weekly report ready</p>
-            <p className="text-xs text-muted-foreground">3 hours ago</p>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onItemClick?.("view-all")}>
-          View all notifications
-        </DropdownMenuItem> */}
+        ) : (
+          notificationItems.map((item, index) => (
+            <DropdownMenuItem
+              key={index}
+              onClick={() => onItemClick?.(item)}
+              className="hover:bg-accent cursor-pointer"
+            >
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-medium">Analysis Complete!</p>
+                {/* <p className="text-xs text-muted-foreground">{item.url}</p> */}
+                <Link
+                  to={`/analyses/${item.id}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  View Article
+                </Link>
+              </div>
+            </DropdownMenuItem>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
+};
+
+type UserMenuProps = {
+  userName?: string;
+  userEmail?: string;
+  userAvatar?: string;
+  onItemClick?: (item: string) => void;
 };
 
 // User Menu Component
@@ -292,12 +281,7 @@ const UserMenu = ({
   userEmail,
   userAvatar,
   onItemClick,
-}: {
-  userName?: string;
-  userEmail?: string;
-  userAvatar?: string;
-  onItemClick?: (item: string) => void;
-}) => {
+}: UserMenuProps) => {
   const navigate = useNavigate();
 
   const { mutate: logout, isPending } = useLogoutMutation();
@@ -374,8 +358,9 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   userAvatar?: string;
   notificationCount?: number;
   onNavItemClick?: (href: string) => void;
-  onNotificationItemClick?: (item: string) => void;
+  onNotificationItemClick?: (item: AnalysisStatus) => void;
   onUserItemClick?: (item: string) => void;
+  notificationItems?: AnalysisStatus[];
 }
 
 export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
@@ -392,13 +377,27 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
       onNavItemClick,
       onNotificationItemClick,
       onUserItemClick,
+      notificationItems,
       ...props
     },
     ref
   ) => {
-    const [isMobile, setIsMobile] = useState(false);
     const containerRef = useRef<HTMLElement>(null);
     const navigate = useNavigate();
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Combine refs
+    const combinedRef = React.useCallback(
+      (node: HTMLElement | null) => {
+        containerRef.current = node;
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref]
+    );
 
     useEffect(() => {
       const checkWidth = () => {
@@ -419,19 +418,6 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
         resizeObserver.disconnect();
       };
     }, []);
-
-    // Combine refs
-    const combinedRef = React.useCallback(
-      (node: HTMLElement | null) => {
-        containerRef.current = node;
-        if (typeof ref === "function") {
-          ref(node);
-        } else if (ref) {
-          ref.current = node;
-        }
-      },
-      [ref]
-    );
 
     return (
       <header
@@ -523,6 +509,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
               <NotificationMenu
                 notificationCount={notificationCount}
                 onItemClick={onNotificationItemClick}
+                notificationItems={notificationItems}
               />
 
               <AddNewsMenu />

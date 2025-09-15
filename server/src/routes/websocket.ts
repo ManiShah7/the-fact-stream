@@ -1,18 +1,12 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { createBunWebSocket } from "hono/bun";
-import { client, db } from "@server/lib/db";
-import { queuedAnalysis } from "@server/lib/db/schema/queuedAnalysis";
+import { db } from "@server/lib/db";
+import { queuedAnalysis } from "@server/lib/db/schema/analysisStatuses";
 import { users } from "@server/lib/db/schema/users";
 import { wsConnectionManager } from "@server/helpers/wsHelpers";
 
 const { upgradeWebSocket } = createBunWebSocket();
-
-const getAnalysisById = async (analysisId: string) =>
-  await db
-    .select()
-    .from(queuedAnalysis)
-    .where(eq(queuedAnalysis.id, Number(analysisId)));
 
 export const websocketRoutes = new Hono().get(
   "/:userId/updates",
@@ -37,11 +31,9 @@ export const websocketRoutes = new Hono().get(
     return {
       onOpen: (event, ws) => {
         wsConnectionManager.addConnection(userId, ws);
-        console.log(`User ${userId} connected`);
       },
       onClose: (event, ws) => {
         wsConnectionManager.removeConnection(userId);
-        console.log(`User ${userId} disconnected`);
       },
     };
   })

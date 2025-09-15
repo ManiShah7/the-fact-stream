@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { eq, and, desc } from "drizzle-orm";
-import { analyzeArticleContent } from "@server/lib/analyseNews";
 import { db } from "@server/lib/db";
 import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
 import { authMiddleware } from "@server/middleware/authMiddleware";
@@ -114,48 +113,6 @@ export const analyseRoutes = new Hono()
         queuedCount: req.length,
       },
     });
-
-    // const results = [];
-
-    // for (const item of req) {
-    //   const { url, publish } = item;
-
-    //   const pageContent = await readUrl(url);
-    //   const analysis = await analyzeArticleContent(pageContent);
-
-    //   if (typeof analysis !== "string" && "error" in analysis) {
-    //     results.push({ error: analysis.error, success: false });
-    //     continue;
-    //   }
-
-    //   const insertedModelResponse = await db
-    //     .insert(modelResponse)
-    //     .values({
-    //       title: analysis.title,
-    //       summary: analysis.summary,
-    //       politicalAlignment: analysis.politicalAlignment,
-    //       credibilityScore: analysis.credibilityScore.toString(),
-    //       credibilityReason: analysis.credibilityReason,
-    //       sarcasmOrSatire: analysis.sarcasmOrSatire,
-    //       recommendedAction: analysis.recommendedAction,
-    //       imageUrl: analysis.imageUrl,
-    //       author: analysis.author,
-    //     })
-    //     .returning({ id: modelResponse.id });
-
-    //   const insertedAnalyzeLog = await db
-    //     .insert(analyzeLogs)
-    //     .values({
-    //       userId: user.id,
-    //       url,
-    //       articleText: pageContent,
-    //       modelResponseId: insertedModelResponse[0]?.id,
-    //       isPublished: publish,
-    //     })
-    //     .returning();
-
-    //   results.push(insertedAnalyzeLog[0]);
-    // }
   })
   .patch(":id", authMiddleware, async (c) => {
     const user = c.get("user");

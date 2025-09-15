@@ -5,7 +5,7 @@ import { analyzeArticleContent } from "@server/lib/analyseNews";
 import { readUrl } from "@server/lib/puppeteerUtils";
 import { modelResponse } from "@server/lib/db/schema/modelResponse";
 import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
-import { queuedAnalysis } from "@server/lib/db/schema/queuedAnalysis";
+import { queuedAnalysis } from "@server/lib/db/schema/analysisStatuses";
 
 export function listenQueuedAnalysis() {
   client.listen("queued_analysis_channel", async (payload) => {

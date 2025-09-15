@@ -4,9 +4,10 @@ import { analyzeLogs } from "@server/lib/db/schema/analyseLogs";
 import { modelResponse } from "@server/lib/db/schema/modelResponse";
 import { readUrl } from "@server/lib/puppeteerUtils";
 import type { QueueAnalysesParams } from "@server/types/queue";
-import type { NewAnalyzeLog, NewModelResponse } from "@shared/types/analyses";
+import type { NewAnalyzeLog } from "@shared/types/analyses";
 import type { User } from "@shared/types/user";
-import { sendWebsocketUpdate } from "./wsHelpers";
+import { sendWebsocketUpdate } from "@server/helpers/wsHelpers";
+import { analysisStatuses } from "@server/lib/db/schema/analysisStatuses";
 
 const processNews = async ({
   data,
@@ -55,6 +56,12 @@ const processNews = async ({
         .returning();
 
       if (!insertedAnalyzeLog[0]) return;
+
+      await db.insert(analysisStatuses).values({
+        userId: user.id,
+        analysisId: insertedAnalyzeLog[0].id,
+        isRead: false,
+      });
 
       results.push(insertedAnalyzeLog[0]);
     }
