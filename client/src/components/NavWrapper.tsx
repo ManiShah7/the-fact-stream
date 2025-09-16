@@ -7,14 +7,19 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import useWebSocket from "react-use-websocket";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGetAnalysisStatuses } from "@/queries/analysisStatusesQueries";
+import {
+  useGetAnalysisStatuses,
+  useMarkAnalysisStatusAsRead,
+} from "@/queries/analysisStatusesQueries";
 
 const NavWrapper = () => {
   const auth = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Queries and Mutations
   const { data, isPending } = useGetAnalysisStatuses();
+  const { mutate: markAsReadMutation } = useMarkAnalysisStatusAsRead();
 
   const items: Navbar05NavItem[] = [
     {
@@ -61,6 +66,10 @@ const NavWrapper = () => {
           data ? data.data.filter((item) => !item.isRead).length : 0
         }
         notificationItems={data ? data.data : []}
+        onNotificationItemClick={(id) => {
+          markAsReadMutation({ id: String(id) });
+          navigate(`/analyses/${id}`);
+        }}
       />
 
       <Outlet />

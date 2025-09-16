@@ -213,7 +213,7 @@ const AddNewsMenu = () => {
 
 type NotificationMenuProps = {
   notificationCount?: number;
-  onItemClick?: (item: AnalysisStatus) => void;
+  onItemClick?: (id: number) => void;
   notificationItems?: AnalysisStatus[];
 };
 
@@ -247,7 +247,7 @@ const NotificationMenu = ({
           notificationItems.map((item, index) => (
             <DropdownMenuItem
               key={index}
-              onClick={() => onItemClick?.(item)}
+              onClick={() => onItemClick?.(item.id)}
               className="hover:bg-accent cursor-pointer"
             >
               <div className="flex flex-col gap-1">
@@ -358,7 +358,7 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
   userAvatar?: string;
   notificationCount?: number;
   onNavItemClick?: (href: string) => void;
-  onNotificationItemClick?: (item: AnalysisStatus) => void;
+  onNotificationItemClick?: (id: number) => void;
   onUserItemClick?: (item: string) => void;
   notificationItems?: AnalysisStatus[];
 }
